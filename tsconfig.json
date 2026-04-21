@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true
+  },
+  "include": [],
+  "references": [],
+  "exclude": ["node_modules", "dist", "build", ".turbo"]
+}

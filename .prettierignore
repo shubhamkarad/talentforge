@@ -1,0 +1,13 @@
+node_modules
+dist
+build
+out
+.turbo
+.next
+coverage
+pnpm-lock.yaml
+*.min.js
+*.min.css
+routeTree.gen.ts
+supabase/functions/**/deno.lock
+packages/data-client/src/types/database.ts
