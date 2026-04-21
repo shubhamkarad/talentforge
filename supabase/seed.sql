@@ -1,0 +1,16 @@
+-- Talentforge — local-dev seed
+-- Runs after migrations on `supabase db reset`.
+--
+-- NOTE: Seed data that depends on auth.users (profiles, jobs, applications,
+-- etc.) cannot be created from this file because public.profiles requires an
+-- FK to auth.users, and auth.users rows must be created through Supabase's
+-- auth API — not raw SQL. For that we use `scripts/demo-reset-and-seed.mjs`
+-- (scaffolded in Phase 8), which:
+--   1. runs `supabase db reset` to re-apply migrations + this seed
+--   2. calls the admin auth API to create test employer + candidate users
+--   3. inserts companies, jobs, applications, and saved_jobs tied to them
+--
+-- This file is kept around as the canonical spot for auth-independent seeds
+-- (e.g. reference data, lookup tables) if we add any later.
+
+-- placeholder: nothing to seed at the SQL layer yet.
