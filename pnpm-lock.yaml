@@ -33,6 +33,16 @@ importers:
         specifier: ^5.8.3
         version: 5.9.3
 
+  packages/shared:
+    dependencies:
+      zod:
+        specifier: ^3.25.3
+        version: 3.25.76
+    devDependencies:
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
 packages:
 
   '@esbuild/aix-ppc64@0.27.7':
@@ -574,6 +584,9 @@ packages:
     engines: {node: '>= 14.6'}
     hasBin: true
 
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
 snapshots:
 
   '@esbuild/aix-ppc64@0.27.7':
@@ -966,3 +979,5 @@ snapshots:
       strip-ansi: 7.2.0
 
   yaml@2.8.3: {}
+
+  zod@3.25.76: {}
