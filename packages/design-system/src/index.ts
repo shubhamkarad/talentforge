@@ -32,3 +32,25 @@ export {
 } from './components/ui/dialog';
 export { Skeleton } from './components/ui/skeleton';
 export { Toaster, toast } from './components/ui/sonner';
+export {
+  Command,
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandShortcut,
+} from './components/ui/command';
+
+// Motion primitives
+export { FadeIn } from './components/motion/fade-in';
+export { Stagger, StaggerItem } from './components/motion/stagger';
+export { CountUp } from './components/motion/count-up';
+export { GradientOrb } from './components/motion/gradient-orb';
+export { GridBg } from './components/motion/grid-bg';
+export { ShineButton } from './components/motion/shine-button';
+export { HoverLift } from './components/motion/hover-lift';
+export { ScoreRing } from './components/motion/score-ring';
+export { MagneticButton } from './components/motion/magnetic-button';
+export { ThemeToggle } from './components/motion/theme-toggle';

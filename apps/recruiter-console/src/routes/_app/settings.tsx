@@ -93,7 +93,9 @@ function AccountSection({ userId, email }: { userId: string; email: string }) {
     <Card>
       <CardHeader>
         <CardTitle>Account</CardTitle>
-        <CardDescription>Signed in as <span className="font-medium text-foreground">{email}</span></CardDescription>
+        <CardDescription>
+          Signed in as <span className="text-foreground font-medium">{email}</span>
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {profile.isLoading ? (
@@ -110,7 +112,10 @@ function AccountSection({ userId, email }: { userId: string; email: string }) {
               <Input placeholder="https://..." {...form.register('avatarUrl')} />
             </Field>
             <div className="flex justify-end">
-              <Button type="submit" disabled={form.formState.isSubmitting || updateProfile.isPending}>
+              <Button
+                type="submit"
+                disabled={form.formState.isSubmitting || updateProfile.isPending}
+              >
                 {updateProfile.isPending ? 'Saving…' : 'Save account'}
               </Button>
             </div>
@@ -157,8 +162,15 @@ function CompanySection({ userId }: { userId: string }) {
       foundedYear: company.data.founded_year ?? undefined,
       headquarters: company.data.headquarters ?? '',
       cultureDescription: company.data.culture_description ?? '',
-      benefits: company.data.benefits ?? [],
-      socialLinks: company.data.social_links ?? {},
+      benefits: Array.isArray(company.data.benefits) ? (company.data.benefits as string[]) : [],
+      socialLinks:
+        company.data.social_links && typeof company.data.social_links === 'object'
+          ? (company.data.social_links as {
+              linkedin?: string;
+              twitter?: string;
+              facebook?: string;
+            })
+          : {},
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company.data?.id]);
@@ -258,14 +270,29 @@ function CompanySection({ userId }: { userId: string }) {
             </Field>
 
             <div className="grid gap-4 sm:grid-cols-3">
-              <Field label="LinkedIn URL" error={form.formState.errors.socialLinks?.linkedin?.message}>
-                <Input placeholder="https://linkedin.com/..." {...form.register('socialLinks.linkedin')} />
+              <Field
+                label="LinkedIn URL"
+                error={form.formState.errors.socialLinks?.linkedin?.message}
+              >
+                <Input
+                  placeholder="https://linkedin.com/..."
+                  {...form.register('socialLinks.linkedin')}
+                />
               </Field>
-              <Field label="Twitter URL" error={form.formState.errors.socialLinks?.twitter?.message}>
+              <Field
+                label="Twitter URL"
+                error={form.formState.errors.socialLinks?.twitter?.message}
+              >
                 <Input placeholder="https://x.com/..." {...form.register('socialLinks.twitter')} />
               </Field>
-              <Field label="Facebook URL" error={form.formState.errors.socialLinks?.facebook?.message}>
-                <Input placeholder="https://facebook.com/..." {...form.register('socialLinks.facebook')} />
+              <Field
+                label="Facebook URL"
+                error={form.formState.errors.socialLinks?.facebook?.message}
+              >
+                <Input
+                  placeholder="https://facebook.com/..."
+                  {...form.register('socialLinks.facebook')}
+                />
               </Field>
             </div>
 
@@ -298,7 +325,7 @@ function Field({
     <div className="space-y-1.5">
       <Label>{label}</Label>
       {children}
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {error ? <p className="text-destructive text-xs">{error}</p> : null}
     </div>
   );
 }

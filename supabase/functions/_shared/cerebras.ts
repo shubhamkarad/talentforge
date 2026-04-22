@@ -51,13 +51,19 @@ export interface ChatResponse {
 // explicitly; these just keep workloads consistent across functions.
 // ---------------------------------------------------------------------------
 
+// Models pinned against what's actually callable on this Cerebras tier.
+// Note: the /v1/models endpoint lists the full catalog regardless of tier —
+// always probe with a real chat-completions request to confirm access:
+//   curl -X POST https://api.cerebras.ai/v1/chat/completions \
+//     -H "Authorization: Bearer $CEREBRAS_API_KEY" -H "Content-Type: application/json" \
+//     -d '{"model":"<name>","messages":[{"role":"user","content":"ok"}],"max_tokens":5}'
 export const CEREBRAS_MODELS = {
-  // Fast + cheap bulk scoring (score-fit).
-  fast:     'llama-3.3-70b',
-  // Stronger reasoning for career forecast, interview prep, resume parsing.
-  reason:   'llama-4-scout-17b-16e-instruct',
-  // Creative JSON generation for draft-job.
-  creative: 'llama-4-scout-17b-16e-instruct',
+  // Bulk scoring (score-fit) — 8B is tiny + fast, good for our batch-of-5 loop.
+  fast: 'llama3.1-8b',
+  // Reasoning / complex nested JSON (career forecast, interview prep, resume parsing).
+  reason: 'qwen-3-235b-a22b-instruct-2507',
+  // Creative JSON generation (draft-job). Qwen-3-235B handles prose + schema.
+  creative: 'qwen-3-235b-a22b-instruct-2507',
 } as const;
 
 // ---------------------------------------------------------------------------

@@ -8,6 +8,8 @@ import {
   Card,
   CardContent,
   Skeleton,
+  Stagger,
+  StaggerItem,
 } from '@forge/design-system';
 import { PageHeader } from '~/components/app-shell';
 
@@ -48,12 +50,14 @@ function JobsListPage() {
           ))}
         </div>
       ) : jobs.data && jobs.data.length > 0 ? (
-        <ul className="space-y-3">
+        <Stagger as="ul" step={0.05} className="space-y-3">
           {jobs.data.map((job) => (
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            <JobRow key={(job as any).id} job={job} />
+            <StaggerItem as="li" key={(job as any).id}>
+              <JobRow job={job} />
+            </StaggerItem>
           ))}
-        </ul>
+        </Stagger>
       ) : (
         <EmptyState />
       )}
@@ -68,44 +72,42 @@ function JobRow({ job }: { job: any }) {
   const company = job.companies?.name ?? '—';
 
   return (
-    <li>
-      <Link
-        to="/jobs/$jobId"
-        params={{ jobId: job.id }}
-        className="block"
-      >
-        <Card className="transition-shadow hover:shadow-md">
-          <CardContent className="flex items-center gap-6 p-5">
-            <div className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-              <Briefcase className="size-4" />
+    <Link to="/jobs/$jobId" params={{ jobId: job.id }} className="block">
+      <Card className="group hover:border-primary/30 relative overflow-hidden transition-all hover:-translate-y-0.5 hover:shadow-lg">
+        <div
+          aria-hidden
+          className="from-primary/5 pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l to-transparent opacity-0 transition-opacity group-hover:opacity-100"
+        />
+        <CardContent className="flex items-center gap-6 p-5">
+          <div className="bg-primary/10 text-primary grid size-10 shrink-0 place-items-center rounded-md">
+            <Briefcase className="size-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="truncate font-semibold">{job.title}</span>
+              <Badge variant={tone}>{statusLabel}</Badge>
             </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <span className="truncate font-semibold">{job.title}</span>
-                <Badge variant={tone}>{statusLabel}</Badge>
-              </div>
-              <div className="mt-1 truncate text-sm text-muted-foreground">
-                {company} · updated {formatRelativeTime(job.updated_at ?? job.created_at)}
-              </div>
+            <div className="text-muted-foreground mt-1 truncate text-sm">
+              {company} · updated {formatRelativeTime(job.updated_at ?? job.created_at)}
             </div>
-            <div className="hidden items-center gap-6 text-sm text-muted-foreground sm:flex">
-              <span className="inline-flex items-center gap-1">
-                <Users className="size-4" />
-                {job.applications_count ?? 0}
-                <span className="text-xs">
-                  {(job.applications_count ?? 0) === 1 ? 'application' : 'applications'}
-                </span>
+          </div>
+          <div className="text-muted-foreground hidden items-center gap-6 text-sm sm:flex">
+            <span className="inline-flex items-center gap-1">
+              <Users className="size-4" />
+              {job.applications_count ?? 0}
+              <span className="text-xs">
+                {(job.applications_count ?? 0) === 1 ? 'application' : 'applications'}
               </span>
-              <span className="inline-flex items-center gap-1">
-                <Eye className="size-4" />
-                {job.views_count ?? 0}
-                <span className="text-xs">views</span>
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      </Link>
-    </li>
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <Eye className="size-4" />
+              {job.views_count ?? 0}
+              <span className="text-xs">views</span>
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 
@@ -113,14 +115,14 @@ function EmptyState() {
   return (
     <Card>
       <CardContent className="flex flex-col items-center gap-4 px-6 py-16 text-center">
-        <div className="grid size-12 place-items-center rounded-full bg-primary/10 text-primary">
+        <div className="bg-primary/10 text-primary grid size-12 place-items-center rounded-full">
           <Briefcase className="size-5" />
         </div>
         <div>
           <h3 className="text-lg font-semibold">No jobs yet</h3>
-          <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-            Post your first role in under a minute — describe it in a sentence
-            and AI drafts the full posting.
+          <p className="text-muted-foreground mx-auto mt-1 max-w-sm text-sm">
+            Post your first role in under a minute — describe it in a sentence and AI drafts the
+            full posting.
           </p>
         </div>
         <Button asChild>

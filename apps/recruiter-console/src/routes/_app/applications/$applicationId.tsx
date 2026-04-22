@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from '@tanstack/react-router';
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ExternalLink, Mail, MessagesSquare, Phone } from 'lucide-react';
 import {
   APPLICATION_STATUS_LABELS,
@@ -6,7 +6,7 @@ import {
   formatRelativeTime,
   initialsOf,
 } from '@forge/shared';
-import { useApplication, useUpdateApplication } from '@forge/data-client';
+import { useApplication, useMessageThread, useUpdateApplication } from '@forge/data-client';
 import {
   Avatar,
   AvatarFallback,
@@ -39,8 +39,10 @@ const STATUSES = [
 
 function ApplicationDetailPage() {
   const { applicationId } = Route.useParams();
+  const navigate = useNavigate();
   const application = useApplication(applicationId);
   const updateApplication = useUpdateApplication();
+  const { data: thread, createThread } = useMessageThread(applicationId);
 
   if (application.isLoading) {
     return (
@@ -84,6 +86,26 @@ function ApplicationDetailPage() {
     }
   }
 
+  async function openThread() {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const existing = thread as any;
+      if (existing?.id) {
+        navigate({ to: '/messages', search: { thread: existing.id } });
+        return;
+      }
+      const created = await createThread.mutateAsync({
+        applicationId,
+        employerId: row.jobs?.employer_id,
+        candidateId: row.candidate_id,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      navigate({ to: '/messages', search: { thread: (created as any).id } });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Could not open thread');
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
       <PageHeader
@@ -91,11 +113,13 @@ function ApplicationDetailPage() {
         subtitle={
           <>
             Applied for{' '}
-            <span className="font-medium text-foreground">{job.title ?? 'this role'}</span>
+            <span className="text-foreground font-medium">{job.title ?? 'this role'}</span>
             {' · '}
             {formatRelativeTime(row.applied_at)}
             {' · '}
-            <Badge variant="secondary" className="ml-1">{statusLabel}</Badge>
+            <Badge variant="secondary" className="ml-1">
+              {statusLabel}
+            </Badge>
           </>
         }
         actions={
@@ -112,10 +136,15 @@ function ApplicationDetailPage() {
                 </option>
               ))}
             </Select>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/messages">
-                <MessagesSquare className="size-4" /> Thread
-              </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={openThread}
+              disabled={createThread.isPending}
+            >
+              <MessagesSquare className="size-4" />
+              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+              {(thread as any)?.id ? 'Open thread' : 'Message candidate'}
             </Button>
           </>
         }
@@ -125,15 +154,9 @@ function ApplicationDetailPage() {
         <div className="space-y-6">
           <CandidateCard candidate={candidate} profile={profile} />
           {row.cover_letter ? <CoverLetterCard text={row.cover_letter} /> : null}
-          {profile.experience?.length ? (
-            <ExperienceCard items={profile.experience} />
-          ) : null}
-          {profile.education?.length ? (
-            <EducationCard items={profile.education} />
-          ) : null}
-          {profile.skills?.length ? (
-            <SkillsCard items={profile.skills} />
-          ) : null}
+          {profile.experience?.length ? <ExperienceCard items={profile.experience} /> : null}
+          {profile.education?.length ? <EducationCard items={profile.education} /> : null}
+          {profile.skills?.length ? <SkillsCard items={profile.skills} /> : null}
         </div>
 
         <aside className="space-y-6">
@@ -165,11 +188,13 @@ function CandidateCard({
           <AvatarFallback className="text-base">{initialsOf(candidate.full_name)}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <div className="text-xl font-semibold tracking-tight">{candidate.full_name ?? 'Anonymous'}</div>
+          <div className="text-xl font-semibold tracking-tight">
+            {candidate.full_name ?? 'Anonymous'}
+          </div>
           {profile.headline ? (
-            <div className="text-sm text-muted-foreground">{profile.headline}</div>
+            <div className="text-muted-foreground text-sm">{profile.headline}</div>
           ) : null}
-          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-muted-foreground">
+          <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
             {candidate.email ? (
               <span className="inline-flex items-center gap-1.5">
                 <Mail className="size-3.5" /> {candidate.email}
@@ -181,20 +206,32 @@ function CandidateCard({
               </span>
             ) : null}
             {profile.linkedin_url ? (
-              <a href={profile.linkedin_url} target="_blank" rel="noreferrer"
-                 className="inline-flex items-center gap-1 hover:text-foreground">
+              <a
+                href={profile.linkedin_url}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-foreground inline-flex items-center gap-1"
+              >
                 LinkedIn <ExternalLink className="size-3" />
               </a>
             ) : null}
             {profile.github_url ? (
-              <a href={profile.github_url} target="_blank" rel="noreferrer"
-                 className="inline-flex items-center gap-1 hover:text-foreground">
+              <a
+                href={profile.github_url}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-foreground inline-flex items-center gap-1"
+              >
                 GitHub <ExternalLink className="size-3" />
               </a>
             ) : null}
             {profile.portfolio_url ? (
-              <a href={profile.portfolio_url} target="_blank" rel="noreferrer"
-                 className="inline-flex items-center gap-1 hover:text-foreground">
+              <a
+                href={profile.portfolio_url}
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-foreground inline-flex items-center gap-1"
+              >
                 Portfolio <ExternalLink className="size-3" />
               </a>
             ) : null}
@@ -212,7 +249,7 @@ function CoverLetterCard({ text }: { text: string }) {
         <CardTitle>Cover letter</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="whitespace-pre-wrap text-sm text-muted-foreground">{text}</p>
+        <p className="text-muted-foreground text-sm whitespace-pre-wrap">{text}</p>
       </CardContent>
     </Card>
   );
@@ -235,17 +272,17 @@ function ExperienceCard({
             <div className="flex items-center gap-2">
               <span className="font-medium">{e.title ?? '—'}</span>
               {e.company ? (
-                <span className="text-sm text-muted-foreground">· {e.company}</span>
+                <span className="text-muted-foreground text-sm">· {e.company}</span>
               ) : null}
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-muted-foreground text-xs">
               {e.startDate ?? ''}
               {e.startDate && (e.endDate || e.current) ? ' – ' : ''}
-              {e.current ? 'Present' : e.endDate ?? ''}
+              {e.current ? 'Present' : (e.endDate ?? '')}
               {e.location ? ` · ${e.location}` : ''}
             </div>
             {e.description ? (
-              <p className="mt-1 text-sm text-muted-foreground">{e.description}</p>
+              <p className="text-muted-foreground mt-1 text-sm">{e.description}</p>
             ) : null}
           </div>
         ))}
@@ -269,7 +306,7 @@ function EducationCard({
         {items.map((e, i) => (
           <div key={i}>
             <div className="font-medium">{e.degree ?? e.institution ?? '—'}</div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-muted-foreground text-xs">
               {[e.institution, e.fieldOfStudy, e.year ?? e.endDate].filter(Boolean).join(' · ')}
             </div>
           </div>
@@ -293,7 +330,7 @@ function SkillsCard({
       <CardContent>
         <div className="flex flex-wrap gap-1.5">
           {items.map((s, i) => {
-            const name = typeof s === 'string' ? s : s?.name ?? String(s);
+            const name = typeof s === 'string' ? s : (s?.name ?? String(s));
             return (
               <Badge key={`${name}-${i}`} variant="secondary">
                 {name}
@@ -324,15 +361,13 @@ function JobCard({
           <Link
             to="/jobs/$jobId"
             params={{ jobId: job.id }}
-            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+            className="text-primary inline-flex items-center gap-1 text-xs hover:underline"
           >
             Open job <ExternalLink className="size-3" />
           </Link>
         ) : null}
         {job.created_at ? (
-          <div className="text-xs text-muted-foreground">
-            Posted {formatDate(job.created_at)}
-          </div>
+          <div className="text-muted-foreground text-xs">Posted {formatDate(job.created_at)}</div>
         ) : null}
       </CardContent>
     </Card>

@@ -41,7 +41,8 @@ export function useUpdateCandidateProfile() {
     mutationFn: async ({ userId, patch }: { userId: string; patch: Record<string, unknown> }) => {
       const { data, error } = await supabase
         .from('candidate_profiles')
-        .update(patch)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(patch as any)
         .eq('id', userId)
         .select()
         .single();
@@ -58,7 +59,8 @@ export function useCreateCandidateProfile() {
     mutationFn: async ({ userId, patch }: { userId: string; patch: Record<string, unknown> }) => {
       const { data, error } = await supabase
         .from('candidate_profiles')
-        .insert({ id: userId, ...patch })
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .insert({ id: userId, ...patch } as any)
         .select()
         .single();
       if (error) throw error;
@@ -76,11 +78,17 @@ export function useUpdateProfile() {
       patch,
     }: {
       userId: string;
-      patch: { full_name?: string; phone?: string; avatar_url?: string };
+      patch: {
+        full_name?: string;
+        phone?: string;
+        avatar_url?: string | null;
+        onboarding_completed?: boolean;
+      };
     }) => {
       const { data, error } = await supabase
         .from('profiles')
-        .update(patch)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(patch as any)
         .eq('id', userId)
         .select()
         .single();

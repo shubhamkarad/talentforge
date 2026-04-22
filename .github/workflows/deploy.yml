@@ -1,0 +1,122 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Apply Supabase migrations to the remote project
+  # ---------------------------------------------------------------------------
+  db:
+    name: supabase · migrate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: link project
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+
+      - name: push migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase db push --yes
+
+  # ---------------------------------------------------------------------------
+  # 2. Deploy all 5 edge functions
+  # ---------------------------------------------------------------------------
+  functions:
+    name: supabase · deploy functions
+    runs-on: ubuntu-latest
+    needs: db
+    strategy:
+      fail-fast: false
+      matrix:
+        fn: [score-fit, career-forecast, interview-prep, extract-profile, draft-job]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: set function secrets
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase secrets set CEREBRAS_API_KEY=${{ secrets.CEREBRAS_API_KEY }} --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+
+      - name: deploy ${{ matrix.fn }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase functions deploy ${{ matrix.fn }} --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+
+  # ---------------------------------------------------------------------------
+  # 3. Deploy both Vercel projects in parallel
+  # ---------------------------------------------------------------------------
+  web:
+    name: vercel · ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    needs: db
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: recruiter-console
+            project_id_secret: VERCEL_PROJECT_ID_RECRUITER
+          - app: seeker-app
+            project_id_secret: VERCEL_PROJECT_ID_SEEKER
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: install
+        run: pnpm install --frozen-lockfile
+
+      - name: install vercel CLI
+        run: pnpm add -g vercel
+
+      - name: pull vercel env
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets[matrix.project_id_secret] }}
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+        working-directory: apps/${{ matrix.app }}
+
+      - name: build
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets[matrix.project_id_secret] }}
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+        working-directory: apps/${{ matrix.app }}
+
+      - name: deploy
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets[matrix.project_id_secret] }}
+        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        working-directory: apps/${{ matrix.app }}

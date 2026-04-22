@@ -12,15 +12,17 @@ export function useEmployerApplications(employerId: string | undefined, jobId?: 
     queryFn: async () => {
       let q = supabase
         .from('applications')
-        .select(`
+        .select(
+          `
           *,
           jobs!inner(id, title, employer_id, companies(name)),
           profiles:candidate_id(id, email, full_name, avatar_url)
-        `)
+        `,
+        )
         .order('created_at', { ascending: false });
 
       if (employerId) q = q.eq('jobs.employer_id', employerId);
-      if (jobId)      q = q.eq('job_id', jobId);
+      if (jobId) q = q.eq('job_id', jobId);
 
       const { data, error } = await q;
       if (error) throw error;
@@ -36,7 +38,8 @@ export function useApplication(applicationId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('applications')
-        .select(`
+        .select(
+          `
           *,
           jobs(id, title, employer_id, companies(name)),
           profiles:candidate_id(
@@ -46,7 +49,8 @@ export function useApplication(applicationId: string | undefined) {
               resume_url, linkedin_url, github_url, portfolio_url
             )
           )
-        `)
+        `,
+        )
         .eq('id', applicationId!)
         .single();
       if (error) throw error;
@@ -72,11 +76,13 @@ export function useCandidateApplications(candidateId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('applications')
-        .select(`
+        .select(
+          `
           *,
           jobs(id, title, location, remote_type, employment_type, status,
                companies(id, name, logo_url, industry))
-        `)
+        `,
+        )
         .eq('candidate_id', candidateId!)
         .order('applied_at', { ascending: false });
       if (error) throw error;
@@ -114,7 +120,8 @@ export function useCreateApplication() {
     mutationFn: async (input: Record<string, unknown>) => {
       const { data, error } = await supabase
         .from('applications')
-        .insert(input)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .insert(input as any)
         .select()
         .single();
       if (error) throw error;
@@ -130,7 +137,8 @@ export function useUpdateApplication() {
     mutationFn: async ({ id, ...patch }: { id: string } & Record<string, unknown>) => {
       const { data, error } = await supabase
         .from('applications')
-        .update(patch)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(patch as any)
         .eq('id', id)
         .select()
         .single();
@@ -156,7 +164,9 @@ async function decorateWithMatchScores(rows: any[] | null) {
   const candidateIds = Array.from(new Set(rows.map((r) => r.candidate_id)));
   const { data: scores } = await supabase
     .from('match_scores')
-    .select('candidate_id, job_id, overall_score, skills_score, experience_score, summary, strengths, concerns')
+    .select(
+      'candidate_id, job_id, overall_score, skills_score, experience_score, summary, strengths, concerns',
+    )
     .in('candidate_id', candidateIds);
 
   const map = new Map<string, unknown>();

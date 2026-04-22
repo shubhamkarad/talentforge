@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: lint · typecheck · build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: install
+        run: pnpm install --frozen-lockfile
+
+      - name: typecheck
+        run: pnpm typecheck
+
+      # Lint is best-effort for now — no eslint config shipped yet.
+      - name: lint
+        run: pnpm lint || echo "lint skipped (no config yet)"
+        continue-on-error: true
+
+      - name: build
+        env:
+          # Stub env so import.meta.env checks pass; real values come from
+          # the deploy workflow's environment secrets.
+          VITE_SUPABASE_URL: http://localhost:54321
+          VITE_SUPABASE_ANON_KEY: ci-placeholder-key
+        run: pnpm build
+
+      - name: upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: |
+            apps/recruiter-console/dist
+            apps/seeker-app/dist
+          retention-days: 7

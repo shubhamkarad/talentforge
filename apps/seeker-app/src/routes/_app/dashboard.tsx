@@ -17,7 +17,11 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CountUp,
+  FadeIn,
   Skeleton,
+  Stagger,
+  StaggerItem,
 } from '@forge/design-system';
 import { PageHeader } from '~/components/app-shell';
 import { ProfileSetupModal } from '~/components/profile-setup-modal';
@@ -28,9 +32,9 @@ export const Route = createFileRoute('/_app/dashboard')({
 
 function SeekerDashboardPage() {
   const { user } = Route.useRouteContext();
-  const profile       = useCandidateProfile(user.id);
-  const applications  = useCandidateApplications(user.id);
-  const savedJobs     = useSavedJobs(user.id);
+  const profile = useCandidateProfile(user.id);
+  const applications = useCandidateApplications(user.id);
+  const savedJobs = useSavedJobs(user.id);
   const notifications = useNotifications(user.id);
 
   const stats = useMemo(() => computeStats(applications.data), [applications.data]);
@@ -45,51 +49,58 @@ function SeekerDashboardPage() {
     <div className="mx-auto max-w-6xl px-6 py-10">
       <PageHeader title={`Welcome, ${firstName}.`} subtitle="Your search at a glance." />
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          icon={FileText}
-          label="Applications"
-          value={stats.total}
-          loading={applications.isLoading}
-          hint={stats.active > 0 ? `${stats.active} still active` : 'nothing in flight'}
-        />
-        <MetricCard
-          icon={Briefcase}
-          label="In interview"
-          value={stats.interviewing}
-          loading={applications.isLoading}
-          hint={stats.offer > 0 ? `${stats.offer} offer${stats.offer > 1 ? 's' : ''} pending` : 'keep applying'}
-          tone="warning"
-        />
-        <MetricCard
-          icon={Bookmark}
-          label="Saved jobs"
-          value={savedJobs.data?.length ?? 0}
-          loading={savedJobs.isLoading}
-          hint={(savedJobs.data?.length ?? 0) === 0 ? 'browse to bookmark' : 'ready to apply'}
-        />
-        <ProfileCompletenessCard
-          loading={profile.isLoading}
-          value={completeness}
-        />
-      </section>
+      <Stagger step={0.06} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StaggerItem>
+          <MetricCard
+            icon={FileText}
+            label="Applications"
+            value={stats.total}
+            loading={applications.isLoading}
+            hint={stats.active > 0 ? `${stats.active} still active` : 'nothing in flight'}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard
+            icon={Briefcase}
+            label="In interview"
+            value={stats.interviewing}
+            loading={applications.isLoading}
+            hint={
+              stats.offer > 0
+                ? `${stats.offer} offer${stats.offer > 1 ? 's' : ''} pending`
+                : 'keep applying'
+            }
+            tone="warning"
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard
+            icon={Bookmark}
+            label="Saved jobs"
+            value={savedJobs.data?.length ?? 0}
+            loading={savedJobs.isLoading}
+            hint={(savedJobs.data?.length ?? 0) === 0 ? 'browse to bookmark' : 'ready to apply'}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <ProfileCompletenessCard loading={profile.isLoading} value={completeness} />
+        </StaggerItem>
+      </Stagger>
 
-      <section className="mt-8 grid gap-6 lg:grid-cols-3">
-        <RecentApplicationsCard
-          loading={applications.isLoading}
-          rows={(applications.data ?? []).slice(0, 6)}
-        />
-        <NotificationsCard
-          loading={notifications.isLoading}
-          rows={(notifications.data ?? []).slice(0, 5)}
-        />
-      </section>
+      <FadeIn delay={0.2}>
+        <section className="mt-8 grid gap-6 lg:grid-cols-3">
+          <RecentApplicationsCard
+            loading={applications.isLoading}
+            rows={(applications.data ?? []).slice(0, 6)}
+          />
+          <NotificationsCard
+            loading={notifications.isLoading}
+            rows={(notifications.data ?? []).slice(0, 5)}
+          />
+        </section>
+      </FadeIn>
 
-      <ProfileSetupModal
-        userId={user.id}
-        profile={profile.data}
-        loading={profile.isLoading}
-      />
+      <ProfileSetupModal userId={user.id} profile={profile.data} loading={profile.isLoading} />
     </div>
   );
 }
@@ -119,17 +130,17 @@ function MetricCard({
         <div
           className={
             tone === 'warning'
-              ? 'grid size-9 place-items-center rounded-md bg-warning/15 text-warning-foreground'
-              : 'grid size-9 place-items-center rounded-md bg-primary/10 text-primary'
+              ? 'bg-warning/15 text-warning-foreground grid size-9 place-items-center rounded-md'
+              : 'bg-primary/10 text-primary grid size-9 place-items-center rounded-md'
           }
         >
           <Icon className="size-4" />
         </div>
-        <div className="mt-4 text-sm text-muted-foreground">{label}</div>
+        <div className="text-muted-foreground mt-4 text-sm">{label}</div>
         <div className="mt-1 text-3xl font-semibold tabular-nums">
-          {loading ? <Skeleton className="h-8 w-16" /> : value.toLocaleString()}
+          {loading ? <Skeleton className="h-8 w-16" /> : <CountUp value={value} />}
         </div>
-        {hint ? <div className="mt-1 text-xs text-muted-foreground">{hint}</div> : null}
+        {hint ? <div className="text-muted-foreground mt-1 text-xs">{hint}</div> : null}
       </CardContent>
     </Card>
   );
@@ -139,15 +150,21 @@ function ProfileCompletenessCard({ loading, value }: { loading: boolean; value: 
   return (
     <Card>
       <CardContent className="p-5">
-        <div className="grid size-9 place-items-center rounded-md bg-primary/10 text-primary">
+        <div className="bg-primary/10 text-primary grid size-9 place-items-center rounded-md">
           <User className="size-4" />
         </div>
-        <div className="mt-4 text-sm text-muted-foreground">Profile completeness</div>
+        <div className="text-muted-foreground mt-4 text-sm">Profile completeness</div>
         <div className="mt-1 text-3xl font-semibold tabular-nums">
-          {loading ? <Skeleton className="h-8 w-16" /> : `${value}%`}
+          {loading ? (
+            <Skeleton className="h-8 w-16" />
+          ) : (
+            <>
+              <CountUp value={value} />%
+            </>
+          )}
         </div>
-        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-          <div className="h-full bg-primary transition-all" style={{ width: `${value}%` }} />
+        <div className="bg-muted mt-2 h-1.5 overflow-hidden rounded-full">
+          <div className="bg-primary h-full transition-all" style={{ width: `${value}%` }} />
         </div>
         {value < 100 ? (
           <Button asChild size="sm" variant="outline" className="mt-3 w-full">
@@ -182,11 +199,11 @@ function RecentApplicationsCard({
           </div>
         ) : rows.length === 0 ? (
           <div className="px-6 py-10 text-center">
-            <div className="mx-auto grid size-10 place-items-center rounded-full bg-muted text-muted-foreground">
+            <div className="bg-muted text-muted-foreground mx-auto grid size-10 place-items-center rounded-full">
               <Briefcase className="size-5" />
             </div>
             <h3 className="mt-3 text-sm font-semibold">No applications yet</h3>
-            <p className="mx-auto mt-1 max-w-xs text-xs text-muted-foreground">
+            <p className="text-muted-foreground mx-auto mt-1 max-w-xs text-xs">
               Find your first role and we'll track it here.
             </p>
             <Button asChild size="sm" className="mt-3">
@@ -194,7 +211,7 @@ function RecentApplicationsCard({
             </Button>
           </div>
         ) : (
-          <ul className="divide-y divide-border/70">
+          <ul className="divide-border/70 divide-y">
             {rows.map((row) => {
               const title = row.jobs?.title ?? 'Untitled role';
               const company = row.jobs?.companies?.name;
@@ -203,11 +220,11 @@ function RecentApplicationsCard({
                   <Link
                     to="/applications/$applicationId"
                     params={{ applicationId: row.id }}
-                    className="flex items-center gap-4 px-6 py-3 text-sm hover:bg-muted/40"
+                    className="hover:bg-muted/40 flex items-center gap-4 px-6 py-3 text-sm"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="truncate font-medium">{title}</div>
-                      <div className="truncate text-xs text-muted-foreground">
+                      <div className="text-muted-foreground truncate text-xs">
                         {company ? `${company} · ` : ''}applied {formatRelativeTime(row.applied_at)}
                       </div>
                     </div>
@@ -248,16 +265,16 @@ function NotificationsCard({
           </div>
         ) : rows.length === 0 ? (
           <div className="px-6 py-10 text-center">
-            <div className="mx-auto grid size-10 place-items-center rounded-full bg-muted text-muted-foreground">
+            <div className="bg-muted text-muted-foreground mx-auto grid size-10 place-items-center rounded-full">
               <Bell className="size-5" />
             </div>
             <h3 className="mt-3 text-sm font-semibold">You're all caught up</h3>
-            <p className="mx-auto mt-1 max-w-xs text-xs text-muted-foreground">
+            <p className="text-muted-foreground mx-auto mt-1 max-w-xs text-xs">
               Employer updates and new messages will show up here.
             </p>
           </div>
         ) : (
-          <ul className="divide-y divide-border/70">
+          <ul className="divide-border/70 divide-y">
             {rows.map((n) => (
               <li key={n.id} className="flex items-start gap-3 px-6 py-3 text-sm">
                 <span
@@ -268,9 +285,9 @@ function NotificationsCard({
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium">{n.title}</div>
                   {n.body ? (
-                    <div className="line-clamp-2 text-xs text-muted-foreground">{n.body}</div>
+                    <div className="text-muted-foreground line-clamp-2 text-xs">{n.body}</div>
                   ) : null}
-                  <div className="mt-0.5 text-[10px] text-muted-foreground">
+                  <div className="text-muted-foreground mt-0.5 text-[10px]">
                     {formatRelativeTime(n.created_at)}
                   </div>
                 </div>

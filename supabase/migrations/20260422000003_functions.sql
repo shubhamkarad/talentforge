@@ -255,20 +255,24 @@ security definer
 set search_path = public
 as $$
 declare
-  j record;
+  job_row record;
 begin
   select j.title, j.employer_id, c.name as company_name
-    into j
+    into job_row
     from public.jobs j
     join public.companies c on c.id = j.company_id
     where j.id = new.job_id;
 
+  if job_row.employer_id is null then
+    return new;
+  end if;
+
   insert into public.notifications (user_id, type, title, body, data, action_url)
   values (
-    j.employer_id,
+    job_row.employer_id,
     'application_received',
     'New application received',
-    'A new candidate applied for ' || j.title,
+    'A new candidate applied for ' || job_row.title,
     jsonb_build_object(
       'application_id', new.id,
       'job_id', new.job_id,

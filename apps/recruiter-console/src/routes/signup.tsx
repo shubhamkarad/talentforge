@@ -51,15 +51,15 @@ function SignupPage() {
       title="Create your company"
       subtitle="Takes under a minute. Invite teammates once you're in."
       footer={
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Already set up?{' '}
-          <Link to="/login" className="font-medium text-primary hover:underline">
+          <Link to="/login" className="text-primary font-medium hover:underline">
             Log in
           </Link>
         </p>
       }
     >
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
         <Field label="Your name" error={form.formState.errors.fullName?.message}>
           <Input autoComplete="name" {...form.register('fullName')} />
         </Field>
@@ -79,7 +79,7 @@ function SignupPage() {
         <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
           {form.formState.isSubmitting ? 'Creating account…' : 'Create account'}
         </Button>
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-center text-xs">
           By signing up you agree to the terms of service.
         </p>
       </form>
@@ -100,7 +100,7 @@ function Field({
     <div className="space-y-1.5">
       <Label>{label}</Label>
       {children}
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {error ? <p className="text-destructive text-xs">{error}</p> : null}
     </div>
   );
 }

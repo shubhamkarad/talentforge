@@ -48,7 +48,12 @@ export function useCreateJob() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: Record<string, unknown>) => {
-      const { data, error } = await supabase.from('jobs').insert(input).select().single();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await supabase
+        .from('jobs')
+        .insert(input as any)
+        .select()
+        .single();
       if (error) throw error;
       return data;
     },
@@ -62,7 +67,8 @@ export function useUpdateJob() {
     mutationFn: async ({ id, ...patch }: { id: string } & Record<string, unknown>) => {
       const { data, error } = await supabase
         .from('jobs')
-        .update(patch)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(patch as any)
         .eq('id', id)
         .select()
         .single();
@@ -95,21 +101,27 @@ export function usePublicJobs(filters?: PublicJobFilters) {
     queryFn: async () => {
       let q = supabase
         .from('jobs')
-        .select(`
+        .select(
+          `
           id, title, slug, description, location, remote_type, employment_type,
           experience_level, salary_min, salary_max, salary_currency, show_salary,
           skills_required, created_at, published_at,
           companies(id, name, logo_url, industry, size)
-        `)
+        `,
+        )
         .eq('status', 'active')
         .not('published_at', 'is', null)
         .order('published_at', { ascending: false });
 
-      if (filters?.search)         q = q.ilike('title', `%${filters.search}%`);
-      if (filters?.location)       q = q.ilike('location', `%${filters.location}%`);
-      if (filters?.remoteType)     q = q.eq('remote_type', filters.remoteType);
-      if (filters?.employmentType) q = q.eq('employment_type', filters.employmentType);
-      if (filters?.experienceLevel) q = q.eq('experience_level', filters.experienceLevel);
+      if (filters?.search) q = q.ilike('title', `%${filters.search}%`);
+      if (filters?.location) q = q.ilike('location', `%${filters.location}%`);
+      // Enum columns — cast to silence strict literal typing against free-form filter input.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (filters?.remoteType) q = q.eq('remote_type', filters.remoteType as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (filters?.employmentType) q = q.eq('employment_type', filters.employmentType as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (filters?.experienceLevel) q = q.eq('experience_level', filters.experienceLevel as any);
 
       const { data, error } = await q;
       if (error) throw error;

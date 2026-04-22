@@ -3,11 +3,7 @@ import { useMemo } from 'react';
 import { ArrowRight, Briefcase, Clock, Eye, MessagesSquare, Plus, Users } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { formatRelativeTime } from '@forge/shared';
-import {
-  useEmployerApplications,
-  useEmployerJobs,
-  useMessageThreads,
-} from '@forge/data-client';
+import { useEmployerApplications, useEmployerJobs, useMessageThreads } from '@forge/data-client';
 import {
   Badge,
   Button,
@@ -16,7 +12,11 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CountUp,
+  FadeIn,
   Skeleton,
+  Stagger,
+  StaggerItem,
 } from '@forge/design-system';
 import { PageHeader } from '~/components/app-shell';
 
@@ -27,11 +27,14 @@ export const Route = createFileRoute('/_app/dashboard')({
 function DashboardPage() {
   const { user } = Route.useRouteContext();
 
-  const jobs         = useEmployerJobs(user.id);
+  const jobs = useEmployerJobs(user.id);
   const applications = useEmployerApplications(user.id);
-  const threads      = useMessageThreads(user.id, 'employer');
+  const threads = useMessageThreads(user.id, 'employer');
 
-  const stats = useMemo(() => computeStats(jobs.data, applications.data), [jobs.data, applications.data]);
+  const stats = useMemo(
+    () => computeStats(jobs.data, applications.data),
+    [jobs.data, applications.data],
+  );
   const unreadThreads = useMemo(() => countUnreadThreads(threads.data), [threads.data]);
 
   const firstName =
@@ -53,45 +56,55 @@ function DashboardPage() {
         }
       />
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          icon={Briefcase}
-          label="Active jobs"
-          value={stats.activeJobs}
-          loading={jobs.isLoading}
-          hint={stats.draftJobs > 0 ? `${stats.draftJobs} draft` : 'nothing in draft'}
-        />
-        <MetricCard
-          icon={Clock}
-          label="New applications"
-          value={stats.pending}
-          loading={applications.isLoading}
-          tone="warning"
-          hint="waiting for review"
-        />
-        <MetricCard
-          icon={Users}
-          label="In pipeline"
-          value={stats.inPipeline}
-          loading={applications.isLoading}
-          hint="reviewing → interviewing"
-        />
-        <MetricCard
-          icon={Eye}
-          label="Job views (total)"
-          value={stats.totalViews}
-          loading={jobs.isLoading}
-          hint={stats.totalViews === 0 ? 'publish a role to start' : 'across all jobs'}
-        />
-      </section>
+      <Stagger step={0.06} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StaggerItem>
+          <MetricCard
+            icon={Briefcase}
+            label="Active jobs"
+            value={stats.activeJobs}
+            loading={jobs.isLoading}
+            hint={stats.draftJobs > 0 ? `${stats.draftJobs} draft` : 'nothing in draft'}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard
+            icon={Clock}
+            label="New applications"
+            value={stats.pending}
+            loading={applications.isLoading}
+            tone="warning"
+            hint="waiting for review"
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard
+            icon={Users}
+            label="In pipeline"
+            value={stats.inPipeline}
+            loading={applications.isLoading}
+            hint="reviewing → interviewing"
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard
+            icon={Eye}
+            label="Job views (total)"
+            value={stats.totalViews}
+            loading={jobs.isLoading}
+            hint={stats.totalViews === 0 ? 'publish a role to start' : 'across all jobs'}
+          />
+        </StaggerItem>
+      </Stagger>
 
-      <section className="mt-8 grid gap-6 lg:grid-cols-3">
-        <RecentApplicationsCard
-          loading={applications.isLoading}
-          rows={(applications.data ?? []).slice(0, 6)}
-        />
-        <ThreadsCard loading={threads.isLoading} unread={unreadThreads} />
-      </section>
+      <FadeIn delay={0.2}>
+        <section className="mt-8 grid gap-6 lg:grid-cols-3">
+          <RecentApplicationsCard
+            loading={applications.isLoading}
+            rows={(applications.data ?? []).slice(0, 6)}
+          />
+          <ThreadsCard loading={threads.isLoading} unread={unreadThreads} />
+        </section>
+      </FadeIn>
     </div>
   );
 }
@@ -122,18 +135,18 @@ function MetricCard({
           <div
             className={
               tone === 'warning'
-                ? 'grid size-9 place-items-center rounded-md bg-warning/15 text-warning-foreground'
-                : 'grid size-9 place-items-center rounded-md bg-primary/10 text-primary'
+                ? 'bg-warning/15 text-warning-foreground grid size-9 place-items-center rounded-md'
+                : 'bg-primary/10 text-primary grid size-9 place-items-center rounded-md'
             }
           >
             <Icon className="size-4" />
           </div>
         </div>
-        <div className="mt-4 text-sm text-muted-foreground">{label}</div>
+        <div className="text-muted-foreground mt-4 text-sm">{label}</div>
         <div className="mt-1 text-3xl font-semibold tabular-nums">
-          {loading ? <Skeleton className="h-8 w-16" /> : value.toLocaleString()}
+          {loading ? <Skeleton className="h-8 w-16" /> : <CountUp value={value} />}
         </div>
-        {hint ? <div className="mt-1 text-xs text-muted-foreground">{hint}</div> : null}
+        {hint ? <div className="text-muted-foreground mt-1 text-xs">{hint}</div> : null}
       </CardContent>
     </Card>
   );
@@ -175,7 +188,7 @@ function RecentApplicationsCard({
             cta={{ to: '/jobs/new', label: 'Post your first job' }}
           />
         ) : (
-          <ul className="divide-y divide-border/70">
+          <ul className="divide-border/70 divide-y">
             {rows.map((row) => {
               const jobTitle = row.jobs?.title ?? 'Untitled role';
               const name = row.profiles?.full_name ?? 'Anonymous candidate';
@@ -184,7 +197,7 @@ function RecentApplicationsCard({
                 <li key={row.id} className="flex items-center gap-4 px-6 py-3 text-sm">
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-medium">{name}</div>
-                    <div className="truncate text-xs text-muted-foreground">
+                    <div className="text-muted-foreground truncate text-xs">
                       {jobTitle} · applied {formatRelativeTime(row.applied_at)}
                     </div>
                   </div>
@@ -192,11 +205,11 @@ function RecentApplicationsCard({
                     {row.status}
                   </Badge>
                   {typeof score === 'number' ? (
-                    <span className="w-10 text-right text-sm font-semibold tabular-nums text-primary">
+                    <span className="text-primary w-10 text-right text-sm font-semibold tabular-nums">
                       {score}%
                     </span>
                   ) : (
-                    <span className="w-10 text-right text-xs text-muted-foreground">—</span>
+                    <span className="text-muted-foreground w-10 text-right text-xs">—</span>
                   )}
                 </li>
               );
@@ -221,10 +234,10 @@ function ThreadsCard({ loading, unread }: { loading: boolean; unread: number }) 
         ) : (
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-semibold tabular-nums">{unread}</span>
-            <span className="text-sm text-muted-foreground">unread</span>
+            <span className="text-muted-foreground text-sm">unread</span>
           </div>
         )}
-        <p className="mt-3 text-xs text-muted-foreground">
+        <p className="text-muted-foreground mt-3 text-xs">
           Each application has one conversation thread with the candidate.
         </p>
         <Button asChild variant="outline" size="sm" className="mt-4 w-full">
@@ -250,11 +263,11 @@ function EmptyState({
 }) {
   return (
     <div className="px-6 py-10 text-center">
-      <div className="mx-auto grid size-10 place-items-center rounded-full bg-muted text-muted-foreground">
+      <div className="bg-muted text-muted-foreground mx-auto grid size-10 place-items-center rounded-full">
         <Icon className="size-5" />
       </div>
       <h3 className="mt-4 text-base font-semibold">{headline}</h3>
-      <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">{body}</p>
+      <p className="text-muted-foreground mx-auto mt-1 max-w-sm text-sm">{body}</p>
       {cta ? (
         <Button asChild size="sm" className="mt-4">
           <Link to={cta.to}>{cta.label}</Link>
@@ -299,10 +312,7 @@ function computeStats(jobs: any[] | undefined, applications: any[] | undefined):
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function countUnreadThreads(threads: any[] | undefined): number {
-  return (threads ?? []).reduce(
-    (acc, t) => acc + (t.employer_unread_count > 0 ? 1 : 0),
-    0,
-  );
+  return (threads ?? []).reduce((acc, t) => acc + (t.employer_unread_count > 0 ? 1 : 0), 0);
 }
 
 function greet(): string {

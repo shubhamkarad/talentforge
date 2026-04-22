@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppSavedRouteImport } from './routes/_app/saved'
 import { Route as AppProfileRouteImport } from './routes/_app/profile'
+import { Route as AppMessagesRouteImport } from './routes/_app/messages'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppCareerRouteImport } from './routes/_app/career'
 import { Route as AppJobsIndexRouteImport } from './routes/_app/jobs/index'
@@ -64,6 +65,11 @@ const AppProfileRoute = AppProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AppRoute,
 } as any)
+const AppMessagesRoute = AppMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/career': typeof AppCareerRoute
   '/dashboard': typeof AppDashboardRoute
+  '/messages': typeof AppMessagesRoute
   '/profile': typeof AppProfileRoute
   '/saved': typeof AppSavedRoute
   '/settings': typeof AppSettingsRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/career': typeof AppCareerRoute
   '/dashboard': typeof AppDashboardRoute
+  '/messages': typeof AppMessagesRoute
   '/profile': typeof AppProfileRoute
   '/saved': typeof AppSavedRoute
   '/settings': typeof AppSettingsRoute
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_app/career': typeof AppCareerRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/messages': typeof AppMessagesRoute
   '/_app/profile': typeof AppProfileRoute
   '/_app/saved': typeof AppSavedRoute
   '/_app/settings': typeof AppSettingsRoute
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/career'
     | '/dashboard'
+    | '/messages'
     | '/profile'
     | '/saved'
     | '/settings'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/career'
     | '/dashboard'
+    | '/messages'
     | '/profile'
     | '/saved'
     | '/settings'
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_app/career'
     | '/_app/dashboard'
+    | '/_app/messages'
     | '/_app/profile'
     | '/_app/saved'
     | '/_app/settings'
@@ -269,6 +281,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProfileRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/messages': {
+      id: '/_app/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof AppMessagesRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
@@ -324,6 +343,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppCareerRoute: typeof AppCareerRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppMessagesRoute: typeof AppMessagesRoute
   AppProfileRoute: typeof AppProfileRoute
   AppSavedRoute: typeof AppSavedRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -337,6 +357,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppCareerRoute: AppCareerRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppMessagesRoute: AppMessagesRoute,
   AppProfileRoute: AppProfileRoute,
   AppSavedRoute: AppSavedRoute,
   AppSettingsRoute: AppSettingsRoute,

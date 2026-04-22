@@ -24,7 +24,8 @@ export function useCreateCompany() {
     mutationFn: async (input: Record<string, unknown>) => {
       const { data, error } = await supabase
         .from('companies')
-        .insert(input)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .insert(input as any)
         .select()
         .single();
       if (error) throw error;
@@ -42,7 +43,8 @@ export function useUpdateCompany() {
     mutationFn: async ({ id, ...patch }: { id: string } & Record<string, unknown>) => {
       const { data, error } = await supabase
         .from('companies')
-        .update(patch)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .update(patch as any)
         .eq('id', id)
         .select()
         .single();
