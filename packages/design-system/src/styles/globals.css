@@ -9,6 +9,10 @@
 
 @import "tailwindcss";
 
+/* Tell Tailwind to scan our own components too, so classes used inside this
+ * package get generated even when an app imports the CSS without scanning us. */
+@source "../components/**/*.{ts,tsx}";
+
 @custom-variant dark (&:is(.dark *));
 
 /* -------------------------------------------------------------------------- */

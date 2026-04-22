@@ -1,0 +1,42 @@
+{
+  "name": "@forge/recruiter-console",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@forge/data-client": "workspace:*",
+    "@forge/design-system": "workspace:*",
+    "@forge/shared": "workspace:*",
+    "@hookform/resolvers": "^3.10.0",
+    "@tanstack/react-query": "^5.64.2",
+    "@tanstack/react-query-devtools": "^5.64.2",
+    "@tanstack/react-router": "^1.121.10",
+    "@tanstack/router-devtools": "^1.121.10",
+    "framer-motion": "^11.18.2",
+    "lucide-react": "^0.511.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-hook-form": "^7.55.0",
+    "sonner": "^2.0.3",
+    "zod": "^3.25.3",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.4",
+    "@tanstack/router-plugin": "^1.121.10",
+    "@types/node": "^22.15.3",
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.4",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.1.4",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.4"
+  }
+}

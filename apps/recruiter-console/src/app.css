@@ -1,0 +1,11 @@
+/*
+ * App-local Tailwind entry.
+ * Imports the shared design-system styles (tokens + base layer) and tells
+ * Tailwind to scan this app's source for class usage. Keep scoped @source
+ * lines here so the design-system CSS stays app-agnostic.
+ */
+
+@import "@forge/design-system/styles.css";
+
+@source "./**/*.{ts,tsx}";
+@source "../../../packages/design-system/src/**/*.{ts,tsx}";
