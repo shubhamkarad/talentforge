@@ -13,6 +13,7 @@ export {
 } from './components/ui/card';
 export { Input } from './components/ui/input';
 export { Label } from './components/ui/label';
+export { Select } from './components/ui/select';
 export { Textarea } from './components/ui/textarea';
 export { Badge, badgeVariants, type BadgeProps } from './components/ui/badge';
 export { Avatar, AvatarImage, AvatarFallback } from './components/ui/avatar';
