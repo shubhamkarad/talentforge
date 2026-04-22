@@ -28,6 +28,7 @@ export {
 export {
   useCandidateProfile,
   useCreateCandidateProfile,
+  useProfile,
   useUpdateCandidateProfile,
   useUpdateProfile,
 } from './hooks/useCandidateProfile';

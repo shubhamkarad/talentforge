@@ -2,6 +2,23 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../client';
 import { qk } from '../query-keys';
 
+// Read the public.profiles row (role-agnostic — works for employers too).
+export function useProfile(userId: string | undefined) {
+  return useQuery({
+    queryKey: userId ? ['profile', userId] : ['profile', 'empty'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!userId,
+  });
+}
+
 export function useCandidateProfile(userId: string | undefined) {
   return useQuery({
     queryKey: userId ? qk.profile.candidate(userId) : ['profile', 'candidate', 'empty'],
