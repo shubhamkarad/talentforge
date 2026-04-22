@@ -1,0 +1,30 @@
+{
+  "name": "@forge/data-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.ts",
+    "./hooks/*": "./src/hooks/*.ts",
+    "./types": "./src/types/database.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@forge/shared": "workspace:*",
+    "@supabase/supabase-js": "^2.49.4",
+    "@tanstack/react-query": "^5.64.2"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.4",
+    "react": "^19.1.0",
+    "typescript": "^5.8.3"
+  }
+}
