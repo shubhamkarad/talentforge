@@ -62,7 +62,7 @@ Highlights shipped during iteration on the initial implementation.
 
 ### Features
 
-- **AI Cover Letter Assistant (6th edge function)** — candidate clicks "Generate with AI" on the apply form, a new `draft-cover-letter` Cerebras function composes a 3-paragraph personalized letter from the candidate profile + job description. Editable, regeneratable. Replaced the older messaging feature.
+- **AI Cover Letter Assistant (6th edge function)** — candidate clicks "Generate with AI" on the apply form, a new `draft-cover-letter` Cerebras function composes a 3-paragraph personalized letter from the candidate profile + job description. Editable, regeneratable.
 - **Realtime application status** — when a recruiter flips an applicant's status (e.g. `reviewing` → `shortlisted`), the seeker's dashboard and application views update live over Supabase Realtime. No refresh needed. Works both directions.
 - **Notifications realtime** — bell badge updates the moment a new notification lands, without reload.
 - **View-count tracking** — opening a job detail page inserts a `job_views` row (once per session), driving the recruiter's "Job views (total)" dashboard card.
@@ -85,12 +85,8 @@ Highlights shipped during iteration on the initial implementation.
 ### Reliability
 
 - **Per-job match-score cache seeded by the mutation** — fixed a cache-key mismatch where `useCalculateMatch`'s result populated only the aggregate map, not the single-job query the detail page reads from.
-- **Channel dedup on realtime hooks** — `useNotifications` / `useMessages` were split into pure-query and realtime-subscription halves so mounting them in two places no longer trips `@supabase/realtime-js`'s duplicate-topic guard.
+- **Channel dedup on realtime hooks** — `useNotifications` was split into pure-query and realtime-subscription halves so mounting it in two places no longer trips `@supabase/realtime-js`'s duplicate-topic guard.
 - **Email-unique profiles** — belt-and-suspenders migration that case-insensitively enforces `UNIQUE(lower(email))` on `profiles`, so a single email can never produce two app-side identities.
-
-### Removed
-
-- **Realtime messaging** — the entire messages + message-threads feature (tables, triggers, edge-side handlers, hooks, routes, nav entries) was cut in favour of the cover-letter assistant. The drop is captured in migration `20260423000003_drop_messaging.sql` which also rebuilds `notification_type` without `new_message`.
 
 ---
 

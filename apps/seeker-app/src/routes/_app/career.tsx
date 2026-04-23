@@ -108,6 +108,28 @@ function EmptyState({ generating, onGenerate }: { generating: boolean; onGenerat
 // Forecast view
 // ---------------------------------------------------------------------------
 
+// LLM output occasionally drops a field or renames one. Normalise once here so
+// every child component can render without its own defensive checks.
+function normalizeForecast(raw: CareerForecast): CareerForecast {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const r = raw as any;
+  return {
+    current_assessment: {
+      level: r.current_assessment?.level ?? 'Based on your profile',
+      strengths: Array.isArray(r.current_assessment?.strengths)
+        ? r.current_assessment.strengths
+        : [],
+      areas_for_growth: Array.isArray(r.current_assessment?.areas_for_growth)
+        ? r.current_assessment.areas_for_growth
+        : [],
+    },
+    predictions: Array.isArray(r.predictions) ? r.predictions : [],
+    alternative_paths: Array.isArray(r.alternative_paths) ? r.alternative_paths : [],
+    skills_to_develop: Array.isArray(r.skills_to_develop) ? r.skills_to_develop : [],
+    recommended_actions: Array.isArray(r.recommended_actions) ? r.recommended_actions : [],
+  };
+}
+
 function ForecastView({
   prediction,
   calculatedAt,
@@ -115,6 +137,7 @@ function ForecastView({
   prediction: CareerForecast;
   calculatedAt?: string;
 }) {
+  const safe = normalizeForecast(prediction);
   return (
     <div className="space-y-6">
       {calculatedAt ? (
@@ -123,11 +146,11 @@ function ForecastView({
         </p>
       ) : null}
 
-      <CurrentAssessment data={prediction.current_assessment} />
-      <Predictions data={prediction.predictions} />
-      <AlternativePaths data={prediction.alternative_paths} />
-      <SkillsToDevelop data={prediction.skills_to_develop} />
-      <RecommendedActions data={prediction.recommended_actions} />
+      <CurrentAssessment data={safe.current_assessment} />
+      <Predictions data={safe.predictions} />
+      <AlternativePaths data={safe.alternative_paths} />
+      <SkillsToDevelop data={safe.skills_to_develop} />
+      <RecommendedActions data={safe.recommended_actions} />
     </div>
   );
 }
@@ -181,26 +204,36 @@ function Predictions({ data }: { data: CareerForecast['predictions'] }) {
         <CardDescription>Projected roles at 1, 3, and 5 years.</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-3">
-        {data.map((p) => (
-          <div key={p.timeframe} className="border-border bg-card rounded-lg border p-4">
-            <Badge variant="secondary" className="font-mono">
-              {p.timeframe.replace('_', ' ')}
-            </Badge>
-            <div className="mt-3 text-lg font-semibold">{p.likely_role}</div>
-            <div className="text-muted-foreground mt-1 text-xs">{p.probability}% probability</div>
-            <div className="text-primary mt-3 text-sm font-medium tabular-nums">
-              {formatCurrency(p.salary_range.min)} – {formatCurrency(p.salary_range.max)}
+        {data.map((p, idx) => {
+          const label = (p.timeframe ?? `slot_${idx}`).replace('_', ' ');
+          const salaryMin = p.salary_range?.min;
+          const salaryMax = p.salary_range?.max;
+          const requirements = Array.isArray(p.key_requirements) ? p.key_requirements : [];
+          return (
+            <div key={p.timeframe ?? idx} className="border-border bg-card rounded-lg border p-4">
+              <Badge variant="secondary" className="font-mono">
+                {label}
+              </Badge>
+              <div className="mt-3 text-lg font-semibold">{p.likely_role ?? '—'}</div>
+              <div className="text-muted-foreground mt-1 text-xs">
+                {typeof p.probability === 'number' ? `${p.probability}% probability` : '—'}
+              </div>
+              {typeof salaryMin === 'number' && typeof salaryMax === 'number' ? (
+                <div className="text-primary mt-3 text-sm font-medium tabular-nums">
+                  {formatCurrency(salaryMin)} – {formatCurrency(salaryMax)}
+                </div>
+              ) : null}
+              <ul className="text-muted-foreground mt-3 space-y-1 text-xs">
+                {requirements.map((r, i) => (
+                  <li key={i} className="flex gap-1.5">
+                    <span>•</span>
+                    <span>{r}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="text-muted-foreground mt-3 space-y-1 text-xs">
-              {p.key_requirements.map((r, i) => (
-                <li key={i} className="flex gap-1.5">
-                  <span>•</span>
-                  <span>{r}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+          );
+        })}
       </CardContent>
     </Card>
   );
@@ -247,26 +280,31 @@ function SkillsToDevelop({ data }: { data: CareerForecast['skills_to_develop'] }
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {data.map((s, i) => (
-          <div key={i} className={cn('rounded-lg border p-4', toneFor(s.importance))}>
-            <div className="flex items-center justify-between">
-              <span className="font-semibold">{s.skill}</span>
-              <Badge variant="outline" className="uppercase">
-                {s.importance}
-              </Badge>
+        {data.map((s, i) => {
+          const resources = Array.isArray(s.resources) ? s.resources : [];
+          return (
+            <div key={i} className={cn('rounded-lg border p-4', toneFor(s.importance))}>
+              <div className="flex items-center justify-between">
+                <span className="font-semibold">{s.skill ?? '—'}</span>
+                {s.importance ? (
+                  <Badge variant="outline" className="uppercase">
+                    {s.importance}
+                  </Badge>
+                ) : null}
+              </div>
+              {resources.length > 0 ? (
+                <ul className="text-muted-foreground mt-2 space-y-1 text-sm">
+                  {resources.map((r, j) => (
+                    <li key={j} className="flex gap-1.5">
+                      <span>•</span>
+                      <span>{r}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </div>
-            {s.resources.length > 0 ? (
-              <ul className="text-muted-foreground mt-2 space-y-1 text-sm">
-                {s.resources.map((r, j) => (
-                  <li key={j} className="flex gap-1.5">
-                    <span>•</span>
-                    <span>{r}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-        ))}
+          );
+        })}
       </CardContent>
     </Card>
   );
