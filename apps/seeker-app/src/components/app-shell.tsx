@@ -103,7 +103,7 @@ function Sidebar({ displayName, email }: { displayName: string; email: string })
           <div className="truncate text-sm font-medium">{displayName}</div>
           <div className="text-muted-foreground truncate text-xs">{email}</div>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             className="mt-2 w-full justify-start"
             onClick={handleSignOut}
@@ -186,7 +186,7 @@ function MobileNav({
             <div className="truncate text-sm font-medium">{displayName}</div>
             <div className="text-muted-foreground truncate text-xs">{email}</div>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               className="mt-2 w-full justify-start"
               onClick={handleSignOut}
