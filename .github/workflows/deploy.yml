@@ -103,12 +103,32 @@ jobs:
       - name: install vercel CLI
         run: pnpm add -g vercel
 
+      # Vercel CLI auto-reads VERCEL_TOKEN / VERCEL_ORG_ID / VERCEL_PROJECT_ID
+      # from the env. Dropping the explicit --token flag avoids the empty-
+      # string footgun where `--token=""` beats the env fallback and the CLI
+      # errors with "no credentials found".
+      - name: check required secrets
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets[matrix.project_id_secret] }}
+        run: |
+          missing=()
+          [ -z "$VERCEL_TOKEN" ]      && missing+=("VERCEL_TOKEN")
+          [ -z "$VERCEL_ORG_ID" ]     && missing+=("VERCEL_ORG_ID")
+          [ -z "$VERCEL_PROJECT_ID" ] && missing+=("${{ matrix.project_id_secret }}")
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing GitHub secrets: ${missing[*]}"
+            echo "Set them at: https://github.com/${{ github.repository }}/settings/secrets/actions"
+            exit 1
+          fi
+
       - name: pull vercel env
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets[matrix.project_id_secret] }}
-        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+        run: vercel pull --yes --environment=production
         working-directory: apps/${{ matrix.app }}
 
       - name: build
@@ -116,7 +136,7 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets[matrix.project_id_secret] }}
-        run: vercel build --prod --token="$VERCEL_TOKEN"
+        run: vercel build --prod
         working-directory: apps/${{ matrix.app }}
 
       - name: deploy
@@ -124,5 +144,5 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets[matrix.project_id_secret] }}
-        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        run: vercel deploy --prebuilt --prod
         working-directory: apps/${{ matrix.app }}
