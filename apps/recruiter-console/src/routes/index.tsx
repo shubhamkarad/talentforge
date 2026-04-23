@@ -293,19 +293,21 @@ function HowItWorks() {
 function SiteFooter() {
   return (
     <footer className="border-border/60 text-muted-foreground border-t px-6 py-8 text-sm">
-      <div className="mx-auto flex max-w-6xl items-center justify-between">
-        <span>
-          © {new Date().getFullYear()} {APP_NAME}
-          <span className="mx-2">·</span>
+      <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
+        <span className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 sm:justify-start">
+          <span>
+            © {new Date().getFullYear()} {APP_NAME}
+          </span>
+          <span className="hidden sm:inline">·</span>
           <span className="font-mono text-[11px] tracking-[0.15em] uppercase">
             forged with cerebras
           </span>
         </span>
-        <div className="flex gap-4">
-          <Link to="/login" className="hover:text-foreground">
+        <div className="hidden gap-4 sm:flex">
+          <Link to="/login" className="hover:text-foreground whitespace-nowrap">
             Log in
           </Link>
-          <Link to="/signup" className="hover:text-foreground">
+          <Link to="/signup" className="hover:text-foreground whitespace-nowrap">
             Sign up
           </Link>
         </div>
