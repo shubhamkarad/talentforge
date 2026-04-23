@@ -1,9 +1,9 @@
 import { Link, createFileRoute } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import { ArrowRight, Briefcase, Clock, Eye, MessagesSquare, Plus, Users } from 'lucide-react';
+import { ArrowRight, Briefcase, Clock, Eye, Plus, Users } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { formatRelativeTime } from '@forge/shared';
-import { useEmployerApplications, useEmployerJobs, useMessageThreads } from '@forge/data-client';
+import { useEmployerApplications, useEmployerJobs } from '@forge/data-client';
 import {
   Badge,
   Button,
@@ -29,13 +29,11 @@ function DashboardPage() {
 
   const jobs = useEmployerJobs(user.id);
   const applications = useEmployerApplications(user.id);
-  const threads = useMessageThreads(user.id, 'employer');
 
   const stats = useMemo(
     () => computeStats(jobs.data, applications.data),
     [jobs.data, applications.data],
   );
-  const unreadThreads = useMemo(() => countUnreadThreads(threads.data), [threads.data]);
 
   const firstName =
     (user.user_metadata?.full_name as string | undefined)?.split(/\s+/)[0] ??
@@ -97,12 +95,11 @@ function DashboardPage() {
       </Stagger>
 
       <FadeIn delay={0.2}>
-        <section className="mt-8 grid gap-6 lg:grid-cols-3">
+        <section className="mt-8">
           <RecentApplicationsCard
             loading={applications.isLoading}
             rows={(applications.data ?? []).slice(0, 6)}
           />
-          <ThreadsCard loading={threads.isLoading} unread={unreadThreads} />
         </section>
       </FadeIn>
     </div>
@@ -221,35 +218,6 @@ function RecentApplicationsCard({
   );
 }
 
-function ThreadsCard({ loading, unread }: { loading: boolean; unread: number }) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Messages</CardTitle>
-        <CardDescription>Threads waiting on a reply.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <Skeleton className="h-8 w-20" />
-        ) : (
-          <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-semibold tabular-nums">{unread}</span>
-            <span className="text-muted-foreground text-sm">unread</span>
-          </div>
-        )}
-        <p className="text-muted-foreground mt-3 text-xs">
-          Each application has one conversation thread with the candidate.
-        </p>
-        <Button asChild variant="outline" size="sm" className="mt-4 w-full">
-          <Link to="/messages">
-            <MessagesSquare className="size-4" /> Open inbox
-          </Link>
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
 function EmptyState({
   icon: Icon,
   headline,
@@ -311,10 +279,6 @@ function computeStats(jobs: any[] | undefined, applications: any[] | undefined):
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function countUnreadThreads(threads: any[] | undefined): number {
-  return (threads ?? []).reduce((acc, t) => acc + (t.employer_unread_count > 0 ? 1 : 0), 0);
-}
-
 function greet(): string {
   const h = new Date().getHours();
   if (h < 12) return 'Good morning';

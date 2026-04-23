@@ -7,7 +7,6 @@ import {
   FileText,
   Home,
   LogOut,
-  MessagesSquare,
   Moon,
   Settings,
   Sun,
@@ -70,9 +69,6 @@ export function CommandPalette({ userId }: { userId: string }) {
           </CommandItem>
           <CommandItem onSelect={() => go('/applications')}>
             <FileText /> Applications
-          </CommandItem>
-          <CommandItem onSelect={() => go('/messages')}>
-            <MessagesSquare /> Messages
           </CommandItem>
           <CommandItem onSelect={() => go('/saved')}>
             <Bookmark /> Saved jobs

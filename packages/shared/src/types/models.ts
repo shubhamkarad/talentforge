@@ -8,12 +8,10 @@ import type {
   EmploymentType,
   ExperienceLevel,
   JobStatus,
-  MessageKind,
   NotificationType,
   RemoteType,
   SalaryPeriod,
   SkillLevel,
-  ThreadStatus,
   UserRole,
 } from './enums';
 
@@ -237,31 +235,7 @@ export interface CareerPrediction {
   createdAt: string;
 }
 
-// ----- messaging + engagement -----
-
-export interface MessageThread {
-  id: string;
-  applicationId: string;
-  employerId: string;
-  candidateId: string;
-  lastMessageAt: string | null;
-  employerUnreadCount: number;
-  candidateUnreadCount: number;
-  status: ThreadStatus;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Message {
-  id: string;
-  threadId: string;
-  senderId: string;
-  content: string;
-  messageType: MessageKind;
-  metadata: Record<string, unknown>;
-  readAt: string | null;
-  createdAt: string;
-}
+// ----- engagement -----
 
 export interface Notification {
   id: string;

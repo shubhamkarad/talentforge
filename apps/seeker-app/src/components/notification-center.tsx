@@ -54,7 +54,7 @@ export function NotificationCenter({ userId }: { userId: string }) {
         {unread > 0 ? (
           <Badge
             variant="destructive"
-            className="absolute -top-1 -right-1 h-4 min-w-4 justify-center px-1 py-0 text-[10px] leading-none"
+            className="border-background absolute -top-1.5 -right-1.5 flex size-[18px] items-center justify-center rounded-full border-2 p-0 text-[10px] leading-none font-bold tabular-nums"
           >
             {unread > 9 ? '9+' : unread}
           </Badge>
@@ -64,7 +64,7 @@ export function NotificationCenter({ userId }: { userId: string }) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[80vh] overflow-hidden p-0 sm:max-w-md">
           <DialogHeader className="border-border/60 border-b px-5 py-4">
-            <DialogTitle className="flex items-center justify-between gap-3">
+            <DialogTitle className="flex items-center justify-between gap-3 pr-8">
               <span>Notifications</span>
               {unread > 0 ? (
                 <Button
@@ -72,6 +72,7 @@ export function NotificationCenter({ userId }: { userId: string }) {
                   size="sm"
                   onClick={() => markAll.mutate(userId)}
                   disabled={markAll.isPending}
+                  className="h-8"
                 >
                   <CheckCheck className="size-3.5" /> Mark all read
                 </Button>

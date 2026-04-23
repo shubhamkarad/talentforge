@@ -22,7 +22,9 @@ export function useMatchScores(candidateId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('match_scores')
-        .select('job_id, overall_score, skills_score, experience_score, summary, strengths, concerns')
+        .select(
+          'job_id, overall_score, skills_score, experience_score, summary, strengths, concerns',
+        )
         .eq('candidate_id', candidateId!);
       if (error) throw error;
       const map: Record<string, MatchScoreRow> = {};
@@ -37,13 +39,13 @@ export function useMatchScores(candidateId: string | undefined) {
 export function useMatchScore(candidateId: string | undefined, jobId: string | undefined) {
   return useQuery({
     queryKey:
-      candidateId && jobId
-        ? qk.matchScores.one(candidateId, jobId)
-        : ['match-scores', 'empty'],
+      candidateId && jobId ? qk.matchScores.one(candidateId, jobId) : ['match-scores', 'empty'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('match_scores')
-        .select('job_id, overall_score, skills_score, experience_score, summary, strengths, concerns')
+        .select(
+          'job_id, overall_score, skills_score, experience_score, summary, strengths, concerns',
+        )
         .eq('candidate_id', candidateId!)
         .eq('job_id', jobId!)
         .maybeSingle();
@@ -61,13 +63,7 @@ export function useCalculateMatch() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      candidateId,
-      jobIds,
-    }: {
-      candidateId: string;
-      jobIds: string[];
-    }) => {
+    mutationFn: async ({ candidateId, jobIds }: { candidateId: string; jobIds: string[] }) => {
       const res = await fetch(`${EDGE_FUNCTIONS_BASE}/score-fit`, {
         method: 'POST',
         headers: {
@@ -86,10 +82,17 @@ export function useCalculateMatch() {
       };
     },
     onSuccess: (result, v) => {
+      // 1. Merge into the aggregate map used by the browse page.
       qc.setQueryData<Record<string, MatchScoreRow>>(qk.matchScores.all(v.candidateId), (old) => ({
         ...(old ?? {}),
         ...result.scores,
       }));
+      // 2. Seed each per-job cache entry too. Candidates can't SELECT
+      //    match_scores directly (RLS), so useMatchScore() has no other way
+      //    to get the data — we need to hand it the row here.
+      for (const [jobId, row] of Object.entries(result.scores)) {
+        qc.setQueryData(qk.matchScores.one(v.candidateId, jobId), row);
+      }
     },
   });
 }

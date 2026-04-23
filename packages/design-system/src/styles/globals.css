@@ -159,4 +159,17 @@
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight;
   }
+  /* Tailwind/Preflight sets buttons to `cursor: default` by default — flip
+   * them to `pointer` for anything actually clickable. Disabled buttons get
+   * `not-allowed`. Covers raw <button>, shadcn <Button>, Radix/cmdk widgets,
+   * and every link with an href. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href] {
+    cursor: pointer;
+  }
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
 }

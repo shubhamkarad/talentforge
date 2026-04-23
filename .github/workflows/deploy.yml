@@ -44,7 +44,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        fn: [score-fit, career-forecast, interview-prep, extract-profile, draft-job]
+        fn:
+          [
+            score-fit,
+            career-forecast,
+            interview-prep,
+            extract-profile,
+            draft-job,
+            draft-cover-letter,
+          ]
     steps:
       - uses: actions/checkout@v4
 

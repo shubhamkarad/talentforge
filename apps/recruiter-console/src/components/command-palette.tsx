@@ -1,16 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import {
-  Briefcase,
-  Home,
-  LogOut,
-  MessagesSquare,
-  Moon,
-  Plus,
-  Settings,
-  Sun,
-  Users,
-} from 'lucide-react';
+import { Briefcase, Home, LogOut, Moon, Plus, Settings, Sun, Users } from 'lucide-react';
 import { useAuth, useEmployerJobs } from '@forge/data-client';
 import {
   CommandDialog,
@@ -75,10 +65,6 @@ export function CommandPalette({ userId }: { userId: string }) {
           <CommandItem onSelect={() => go('/applications')}>
             <Users /> Applications
             <CommandShortcut>G A</CommandShortcut>
-          </CommandItem>
-          <CommandItem onSelect={() => go('/messages')}>
-            <MessagesSquare /> Messages
-            <CommandShortcut>G M</CommandShortcut>
           </CommandItem>
           <CommandItem onSelect={() => go('/settings')}>
             <Settings /> Settings

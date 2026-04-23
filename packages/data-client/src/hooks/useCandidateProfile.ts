@@ -35,6 +35,9 @@ export function useCandidateProfile(userId: string | undefined) {
   });
 }
 
+// Upsert (not update) so profile saves work even if the handle_new_user
+// trigger never ran for this account — otherwise a missing row surfaces as
+// PGRST116 "contains 0 rows" when the UI tries to save.
 export function useUpdateCandidateProfile() {
   const qc = useQueryClient();
   return useMutation({
@@ -42,8 +45,7 @@ export function useUpdateCandidateProfile() {
       const { data, error } = await supabase
         .from('candidate_profiles')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .update(patch as any)
-        .eq('id', userId)
+        .upsert({ id: userId, ...patch } as any, { onConflict: 'id' })
         .select()
         .single();
       if (error) throw error;
@@ -85,11 +87,18 @@ export function useUpdateProfile() {
         onboarding_completed?: boolean;
       };
     }) => {
+      // profiles.email is NOT NULL. When the upsert hits the INSERT branch
+      // (e.g. trigger never ran for this account) we need to supply it.
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const email = session?.user?.email;
+      if (!email) throw new Error('Not authenticated');
+
       const { data, error } = await supabase
         .from('profiles')
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .update(patch as any)
-        .eq('id', userId)
+        .upsert({ id: userId, email, ...patch } as any, { onConflict: 'id' })
         .select()
         .single();
       if (error) throw error;

@@ -1,5 +1,9 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import { supabase, useNotificationsRealtime } from '@forge/data-client';
+import {
+  supabase,
+  useEmployerApplicationsRealtime,
+  useNotificationsRealtime,
+} from '@forge/data-client';
 import { AppShell } from '~/components/app-shell';
 
 // Pathless layout + auth guard for every recruiter-only route.
@@ -23,5 +27,6 @@ export const Route = createFileRoute('/_app')({
 function AppRoute() {
   const { user } = Route.useRouteContext();
   useNotificationsRealtime(user.id);
+  useEmployerApplicationsRealtime(user.id);
   return <AppShell user={user} />;
 }

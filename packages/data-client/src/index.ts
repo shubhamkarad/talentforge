@@ -19,8 +19,10 @@ export {
 export { useCompany, useCreateCompany, useUpdateCompany } from './hooks/useCompany';
 export {
   useEmployerApplications,
+  useEmployerApplicationsRealtime,
   useApplication,
   useCandidateApplications,
+  useCandidateApplicationsRealtime,
   useHasApplied,
   useCreateApplication,
   useUpdateApplication,
@@ -39,14 +41,6 @@ export {
   type MatchScoreRow,
 } from './hooks/useMatchScores';
 export { useCareerForecast, useGenerateCareerForecast } from './hooks/useCareerForecast';
-export {
-  useMessageThreads,
-  useMessageThread,
-  useMessages,
-  useMessagesRealtime,
-  useSendMessage,
-  useMarkMessagesRead,
-} from './hooks/useMessages';
 export {
   useNotifications,
   useNotificationsRealtime,

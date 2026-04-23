@@ -1,5 +1,9 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import { supabase, useNotificationsRealtime } from '@forge/data-client';
+import {
+  supabase,
+  useCandidateApplicationsRealtime,
+  useNotificationsRealtime,
+} from '@forge/data-client';
 import { AppShell } from '~/components/app-shell';
 
 export const Route = createFileRoute('/_app')({
@@ -19,5 +23,6 @@ export const Route = createFileRoute('/_app')({
 function AppRoute() {
   const { user } = Route.useRouteContext();
   useNotificationsRealtime(user.id);
+  useCandidateApplicationsRealtime(user.id);
   return <AppShell user={user} />;
 }

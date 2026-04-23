@@ -46,4 +46,5 @@ supabase/.branches/
 coverage/
 *.lcov
 
-# TanStack Router generated — committed, plugin rewrites on dev
+# TanStack Router generated
+routeTree.gen.ts

@@ -75,6 +75,7 @@ function ProfilePage() {
   const updateCandidate = useUpdateCandidateProfile();
 
   const [form, setForm] = useState<ProfileForm>(EMPTY_FORM);
+  const [errors, setErrors] = useState<Partial<Record<keyof ProfileForm, string>>>({});
 
   // Seed the form once the row loads.
   useEffect(() => {
@@ -127,17 +128,80 @@ function ProfilePage() {
     }));
   }
 
-  async function handleSave(e: React.FormEvent) {
-    e.preventDefault();
+  function validate(): {
+    experience: unknown[];
+    education: unknown[];
+    fieldErrors: Partial<Record<keyof ProfileForm, string>>;
+  } {
+    const fieldErrors: Partial<Record<keyof ProfileForm, string>> = {};
 
-    // Parse JSON fields defensively.
+    // Required.
+    if (!form.fullName.trim()) fieldErrors.fullName = 'Full name is required.';
+
+    // JSON fields must parse as arrays.
     let experience: unknown[] = [];
     let education: unknown[] = [];
     try {
-      experience = JSON.parse(form.experienceJson || '[]');
-      education = JSON.parse(form.educationJson || '[]');
+      const parsed = JSON.parse(form.experienceJson || '[]');
+      if (!Array.isArray(parsed)) throw new Error('must be a JSON array');
+      experience = parsed;
     } catch (err) {
-      toast.error('Experience / Education must be valid JSON. ' + (err as Error).message);
+      fieldErrors.experienceJson = 'Invalid JSON: ' + (err as Error).message;
+    }
+    try {
+      const parsed = JSON.parse(form.educationJson || '[]');
+      if (!Array.isArray(parsed)) throw new Error('must be a JSON array');
+      education = parsed;
+    } catch (err) {
+      fieldErrors.educationJson = 'Invalid JSON: ' + (err as Error).message;
+    }
+
+    // Optional URLs — validated only if non-empty.
+    const urlField = (value: string) => {
+      if (!value) return undefined;
+      try {
+        const u = new URL(value);
+        if (u.protocol !== 'http:' && u.protocol !== 'https:') throw new Error();
+        return undefined;
+      } catch {
+        return 'Must be a valid http(s) URL.';
+      }
+    };
+    const linkErr = urlField(form.linkedinUrl);
+    if (linkErr) fieldErrors.linkedinUrl = linkErr;
+    const ghErr = urlField(form.githubUrl);
+    if (ghErr) fieldErrors.githubUrl = ghErr;
+    const pfErr = urlField(form.portfolioUrl);
+    if (pfErr) fieldErrors.portfolioUrl = pfErr;
+
+    // Numeric fields.
+    const numField = (value: string, label: string) => {
+      if (!value) return undefined;
+      const n = Number(value);
+      if (!Number.isFinite(n) || n < 0) return `${label} must be a non-negative number.`;
+      return undefined;
+    };
+    const sMin = numField(form.salaryMin, 'Min salary');
+    if (sMin) fieldErrors.salaryMin = sMin;
+    const sMax = numField(form.salaryMax, 'Max salary');
+    if (sMax) fieldErrors.salaryMax = sMax;
+    const nd = numField(form.noticeDays, 'Notice period');
+    if (nd) fieldErrors.noticeDays = nd;
+
+    if (form.salaryMin && form.salaryMax && Number(form.salaryMin) > Number(form.salaryMax)) {
+      fieldErrors.salaryMax = 'Max salary must be ≥ min salary.';
+    }
+
+    return { experience, education, fieldErrors };
+  }
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
+
+    const { experience, education, fieldErrors } = validate();
+    setErrors(fieldErrors);
+    if (Object.keys(fieldErrors).length > 0) {
+      toast.error('Please fix the highlighted fields.');
       return;
     }
 
@@ -212,7 +276,7 @@ function ProfilePage() {
               <CardTitle>About you</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Field label="Full name">
+              <Field label="Full name" error={errors.fullName}>
                 <Input
                   value={form.fullName}
                   onChange={(e) => setField('fullName', e.target.value)}
@@ -261,7 +325,7 @@ function ProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Field label="Experience (JSON)">
+              <Field label="Experience (JSON)" error={errors.experienceJson}>
                 <Textarea
                   rows={8}
                   value={form.experienceJson}
@@ -269,7 +333,7 @@ function ProfilePage() {
                   className="font-mono text-xs"
                 />
               </Field>
-              <Field label="Education (JSON)">
+              <Field label="Education (JSON)" error={errors.educationJson}>
                 <Textarea
                   rows={6}
                   value={form.educationJson}
@@ -285,21 +349,21 @@ function ProfilePage() {
               <CardTitle>Links</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Field label="LinkedIn">
+              <Field label="LinkedIn" error={errors.linkedinUrl}>
                 <Input
                   placeholder="https://linkedin.com/in/..."
                   value={form.linkedinUrl}
                   onChange={(e) => setField('linkedinUrl', e.target.value)}
                 />
               </Field>
-              <Field label="GitHub">
+              <Field label="GitHub" error={errors.githubUrl}>
                 <Input
                   placeholder="https://github.com/..."
                   value={form.githubUrl}
                   onChange={(e) => setField('githubUrl', e.target.value)}
                 />
               </Field>
-              <Field label="Portfolio">
+              <Field label="Portfolio" error={errors.portfolioUrl}>
                 <Input
                   placeholder="https://..."
                   value={form.portfolioUrl}
@@ -322,7 +386,7 @@ function ProfilePage() {
                 />
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Salary expectation — min">
+                <Field label="Salary expectation — min" error={errors.salaryMin}>
                   <Input
                     type="number"
                     inputMode="numeric"
@@ -330,7 +394,7 @@ function ProfilePage() {
                     onChange={(e) => setField('salaryMin', e.target.value)}
                   />
                 </Field>
-                <Field label="Salary expectation — max">
+                <Field label="Salary expectation — max" error={errors.salaryMax}>
                   <Input
                     type="number"
                     inputMode="numeric"
@@ -339,7 +403,7 @@ function ProfilePage() {
                   />
                 </Field>
               </div>
-              <Field label="Notice period (days)">
+              <Field label="Notice period (days)" error={errors.noticeDays}>
                 <Input
                   type="number"
                   inputMode="numeric"
@@ -382,14 +446,30 @@ function ProfilePage() {
 
   function setField<K extends keyof ProfileForm>(key: K, value: ProfileForm[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
+    // Clear any error for this field as the user types.
+    setErrors((prev) => {
+      if (!prev[key]) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
   }
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-1.5">
       <Label>{label}</Label>
       {children}
+      {error ? <p className="text-destructive text-xs">{error}</p> : null}
     </div>
   );
 }

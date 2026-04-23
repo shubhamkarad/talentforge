@@ -1,9 +1,9 @@
-import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
-import { Briefcase, Calendar, ExternalLink, MessagesSquare, Sparkles } from 'lucide-react';
+import { Link, createFileRoute } from '@tanstack/react-router';
+import { Briefcase, Calendar, ExternalLink, Sparkles } from 'lucide-react';
 import { APPLICATION_STATUS_LABELS, formatDate, formatRelativeTime } from '@forge/shared';
 // RLS scopes rows by candidate on the DB side — useApplication works for
 // candidates too: they only ever see their own applications.
-import { useApplication, useMessageThread } from '@forge/data-client';
+import { useApplication } from '@forge/data-client';
 import {
   Badge,
   Button,
@@ -14,7 +14,6 @@ import {
   CardTitle,
   Skeleton,
   cn,
-  toast,
 } from '@forge/design-system';
 import { PageHeader } from '~/components/app-shell';
 
@@ -24,10 +23,7 @@ export const Route = createFileRoute('/_app/applications/$applicationId')({
 
 function ApplicationDetailPage() {
   const { applicationId } = Route.useParams();
-  const { user } = Route.useRouteContext();
-  const navigate = useNavigate();
   const application = useApplication(applicationId);
-  const { data: thread, createThread } = useMessageThread(applicationId);
 
   if (application.isLoading) {
     return (
@@ -54,27 +50,10 @@ function ApplicationDetailPage() {
   const job = row.jobs ?? {};
   const company = job.companies ?? {};
   const statusLabel: string = APPLICATION_STATUS_LABELS[row.status] ?? row.status;
-  const canInterviewPrep = row.status === 'interviewing';
-
-  async function openThread() {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const existing = thread as any;
-      if (existing?.id) {
-        navigate({ to: '/messages', search: { thread: existing.id } });
-        return;
-      }
-      const created = await createThread.mutateAsync({
-        applicationId,
-        employerId: row.jobs?.employer_id,
-        candidateId: user.id,
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      navigate({ to: '/messages', search: { thread: (created as any).id } });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not open thread');
-    }
-  }
+  // Show interview prep for any live application — candidates want to prep
+  // early (before the interview is scheduled) or review after (offer stage).
+  // Hide only when the application is dead (rejected or withdrawn).
+  const canInterviewPrep = row.status !== 'rejected' && row.status !== 'withdrawn';
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
@@ -100,11 +79,6 @@ function ApplicationDetailPage() {
                 </Link>
               </Button>
             ) : null}
-            <Button variant="outline" onClick={openThread} disabled={createThread.isPending}>
-              <MessagesSquare className="size-4" />
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {(thread as any)?.id ? 'Open thread' : 'Message employer'}
-            </Button>
           </>
         }
       />

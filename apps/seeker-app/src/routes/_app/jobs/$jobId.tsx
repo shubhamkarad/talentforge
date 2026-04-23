@@ -1,5 +1,5 @@
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Bookmark, BookmarkCheck, Building2, Clock, MapPin, Send } from 'lucide-react';
 import {
   EMPLOYMENT_TYPE_LABELS,
@@ -9,12 +9,14 @@ import {
   formatSalaryRange,
 } from '@forge/shared';
 import {
+  useCalculateMatch,
   useCreateApplication,
   useHasApplied,
   useJob,
   useMatchScore,
   useToggleSaveJob,
   useIsJobSaved,
+  useTrackJobView,
 } from '@forge/data-client';
 import {
   Badge,
@@ -35,6 +37,7 @@ import {
   toast,
 } from '@forge/design-system';
 import { PageHeader } from '~/components/app-shell';
+import { CoverLetterAssistant } from '~/features/apply/cover-letter-assistant';
 
 export const Route = createFileRoute('/_app/jobs/$jobId')({
   component: JobDetailPage,
@@ -49,6 +52,27 @@ function JobDetailPage() {
   const applied = useHasApplied(user.id, jobId);
   const savedState = useIsJobSaved(user.id, jobId);
   const toggle = useToggleSaveJob();
+  const trackView = useTrackJobView(jobId, user.id);
+  const calculate = useCalculateMatch();
+
+  // Fire once per (jobId, session) on mount. The hook guards against
+  // double-inserts within the same session via sessionStorage, so strict-mode
+  // effect remounts don't inflate the counter.
+  useEffect(() => {
+    trackView.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobId]);
+
+  // If the candidate lands here directly (e.g. from a saved-jobs link or a
+  // shared URL) the browse page hasn't primed match_scores for this pair, so
+  // we kick off a single-job score calculation. The edge function is cached —
+  // already-scored pairs are a no-op.
+  useEffect(() => {
+    if (score.isLoading) return;
+    if (score.data) return;
+    calculate.mutate({ candidateId: user.id, jobIds: [jobId] });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobId, score.isLoading, score.data]);
 
   if (job.isLoading) {
     return (
@@ -138,7 +162,7 @@ function JobDetailPage() {
         </div>
 
         <aside className="space-y-6">
-          <MatchCard score={score.data} />
+          <MatchCard score={score.data} calculating={calculate.isPending || score.isLoading} />
           <CompanyCard company={company} />
         </aside>
       </div>
@@ -237,9 +261,11 @@ function BulletCard({ title, items }: { title: string; items: string[] }) {
 
 function MatchCard({
   score,
+  calculating,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   score: any;
+  calculating?: boolean;
 }) {
   if (!score) {
     return (
@@ -247,10 +273,14 @@ function MatchCard({
         <CardHeader>
           <CardTitle>Your fit</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground text-sm">
-            Calculating — open the jobs browse once and come back if this still says so after a few
-            seconds.
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-center py-2">
+            <Skeleton className="size-[140px] rounded-full" />
+          </div>
+          <p className="text-muted-foreground text-center text-sm">
+            {calculating
+              ? 'Analysing your profile against this role — takes a second or two.'
+              : 'Complete your profile to get an instant match score.'}
           </p>
         </CardContent>
       </Card>
@@ -372,6 +402,12 @@ function ApplyDialog({
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <CoverLetterAssistant
+            candidateId={candidateId}
+            jobId={jobId}
+            onGenerated={(text) => setCoverLetter(text)}
+            disabled={create.isPending}
+          />
           <div>
             <label className="text-sm font-medium">Cover letter (optional)</label>
             <Textarea

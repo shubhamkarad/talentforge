@@ -50,7 +50,7 @@ function SeekerDashboardPage() {
       <PageHeader title={`Welcome, ${firstName}.`} subtitle="Your search at a glance." />
 
       <Stagger step={0.06} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StaggerItem>
+        <StaggerItem className="h-full">
           <MetricCard
             icon={FileText}
             label="Applications"
@@ -59,7 +59,7 @@ function SeekerDashboardPage() {
             hint={stats.active > 0 ? `${stats.active} still active` : 'nothing in flight'}
           />
         </StaggerItem>
-        <StaggerItem>
+        <StaggerItem className="h-full">
           <MetricCard
             icon={Briefcase}
             label="In interview"
@@ -73,7 +73,7 @@ function SeekerDashboardPage() {
             tone="warning"
           />
         </StaggerItem>
-        <StaggerItem>
+        <StaggerItem className="h-full">
           <MetricCard
             icon={Bookmark}
             label="Saved jobs"
@@ -82,7 +82,7 @@ function SeekerDashboardPage() {
             hint={(savedJobs.data?.length ?? 0) === 0 ? 'browse to bookmark' : 'ready to apply'}
           />
         </StaggerItem>
-        <StaggerItem>
+        <StaggerItem className="h-full">
           <ProfileCompletenessCard loading={profile.isLoading} value={completeness} />
         </StaggerItem>
       </Stagger>
@@ -125,8 +125,8 @@ function MetricCard({
   tone?: 'default' | 'warning';
 }) {
   return (
-    <Card>
-      <CardContent className="p-5">
+    <Card className="h-full">
+      <CardContent className="flex h-full flex-col p-5">
         <div
           className={
             tone === 'warning'
@@ -140,7 +140,7 @@ function MetricCard({
         <div className="mt-1 text-3xl font-semibold tabular-nums">
           {loading ? <Skeleton className="h-8 w-16" /> : <CountUp value={value} />}
         </div>
-        {hint ? <div className="text-muted-foreground mt-1 text-xs">{hint}</div> : null}
+        {hint ? <div className="text-muted-foreground mt-auto pt-2 text-xs">{hint}</div> : null}
       </CardContent>
     </Card>
   );
@@ -148,8 +148,8 @@ function MetricCard({
 
 function ProfileCompletenessCard({ loading, value }: { loading: boolean; value: number }) {
   return (
-    <Card>
-      <CardContent className="p-5">
+    <Card className="h-full">
+      <CardContent className="flex h-full flex-col p-5">
         <div className="bg-primary/10 text-primary grid size-9 place-items-center rounded-md">
           <User className="size-4" />
         </div>
@@ -166,11 +166,13 @@ function ProfileCompletenessCard({ loading, value }: { loading: boolean; value: 
         <div className="bg-muted mt-2 h-1.5 overflow-hidden rounded-full">
           <div className="bg-primary h-full transition-all" style={{ width: `${value}%` }} />
         </div>
-        {value < 100 ? (
-          <Button asChild size="sm" variant="outline" className="mt-3 w-full">
-            <Link to="/profile">Finish profile</Link>
-          </Button>
-        ) : null}
+        <div className="mt-auto pt-3">
+          {value < 100 ? (
+            <Button asChild size="sm" variant="outline" className="w-full">
+              <Link to="/profile">Finish profile</Link>
+            </Button>
+          ) : null}
+        </div>
       </CardContent>
     </Card>
   );

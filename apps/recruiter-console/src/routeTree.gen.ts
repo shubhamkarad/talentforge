@@ -15,7 +15,6 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
-import { Route as AppMessagesRouteImport } from './routes/_app/messages'
 import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppJobsIndexRouteImport } from './routes/_app/jobs/index'
 import { Route as AppApplicationsIndexRouteImport } from './routes/_app/applications/index'
@@ -50,11 +49,6 @@ const IndexRoute = IndexRouteImport.update({
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMessagesRoute = AppMessagesRouteImport.update({
-  id: '/messages',
-  path: '/messages',
   getParentRoute: () => AppRoute,
 } as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
@@ -95,7 +89,6 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AppDashboardRoute
-  '/messages': typeof AppMessagesRoute
   '/settings': typeof AppSettingsRoute
   '/applications/$applicationId': typeof AppApplicationsApplicationIdRoute
   '/jobs/$jobId': typeof AppJobsJobIdRoute
@@ -109,7 +102,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof AppDashboardRoute
-  '/messages': typeof AppMessagesRoute
   '/settings': typeof AppSettingsRoute
   '/applications/$applicationId': typeof AppApplicationsApplicationIdRoute
   '/jobs/$jobId': typeof AppJobsJobIdRoute
@@ -125,7 +117,6 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/_app/dashboard': typeof AppDashboardRoute
-  '/_app/messages': typeof AppMessagesRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/applications/$applicationId': typeof AppApplicationsApplicationIdRoute
   '/_app/jobs/$jobId': typeof AppJobsJobIdRoute
@@ -141,7 +132,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/dashboard'
-    | '/messages'
     | '/settings'
     | '/applications/$applicationId'
     | '/jobs/$jobId'
@@ -155,7 +145,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/dashboard'
-    | '/messages'
     | '/settings'
     | '/applications/$applicationId'
     | '/jobs/$jobId'
@@ -170,7 +159,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/_app/dashboard'
-    | '/_app/messages'
     | '/_app/settings'
     | '/_app/applications/$applicationId'
     | '/_app/jobs/$jobId'
@@ -231,13 +219,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/messages': {
-      id: '/_app/messages'
-      path: '/messages'
-      fullPath: '/messages'
-      preLoaderRoute: typeof AppMessagesRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
@@ -285,7 +266,6 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppDashboardRoute: typeof AppDashboardRoute
-  AppMessagesRoute: typeof AppMessagesRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppApplicationsApplicationIdRoute: typeof AppApplicationsApplicationIdRoute
   AppJobsJobIdRoute: typeof AppJobsJobIdRoute
@@ -296,7 +276,6 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppDashboardRoute: AppDashboardRoute,
-  AppMessagesRoute: AppMessagesRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppApplicationsApplicationIdRoute: AppApplicationsApplicationIdRoute,
   AppJobsJobIdRoute: AppJobsJobIdRoute,

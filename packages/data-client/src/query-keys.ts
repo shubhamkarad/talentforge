@@ -31,18 +31,11 @@ export const qk = {
 
   matchScores: {
     all: (candidateId: string) => ['match-scores', candidateId] as const,
-    one: (candidateId: string, jobId: string) =>
-      ['match-scores', candidateId, jobId] as const,
+    one: (candidateId: string, jobId: string) => ['match-scores', candidateId, jobId] as const,
   },
 
   career: {
     forecast: (candidateId: string) => ['career', candidateId] as const,
-  },
-
-  messages: {
-    threads: (userId: string, role: string) => ['threads', userId, role] as const,
-    thread: (applicationId: string) => ['thread', applicationId] as const,
-    list: (threadId: string) => ['messages', threadId] as const,
   },
 
   notifications: {
@@ -52,7 +45,6 @@ export const qk = {
 
   savedJobs: {
     list: (candidateId: string) => ['saved-jobs', candidateId] as const,
-    has:  (candidateId: string, jobId: string) =>
-      ['saved-jobs', candidateId, jobId] as const,
+    has: (candidateId: string, jobId: string) => ['saved-jobs', candidateId, jobId] as const,
   },
 } as const;

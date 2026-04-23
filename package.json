@@ -21,16 +21,11 @@
     "supabase:status": "supabase status",
     "supabase:reset": "supabase db reset",
     "supabase:push": "supabase db push",
-    "supabase:types": "supabase gen types typescript --linked > packages/data-client/src/types/database.ts",
-    "db:migrate": "node scripts/run-migrations.mjs",
-    "demo:seed": "node scripts/demo-reset-and-seed.mjs",
-    "prepare": "husky"
+    "supabase:types": "supabase gen types typescript --local > packages/data-client/src/types/database.ts"
   },
   "devDependencies": {
-    "@supabase/supabase-js": "^2.49.4",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.1",
-    "pg": "^8.13.1",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "rimraf": "^6.0.1",

@@ -25,40 +25,19 @@ export type ExperienceLevel =
   | 'principal'
   | 'executive';
 
-export type EmploymentType =
-  | 'full-time'
-  | 'part-time'
-  | 'contract'
-  | 'internship'
-  | 'freelance';
+export type EmploymentType = 'full-time' | 'part-time' | 'contract' | 'internship' | 'freelance';
 
 export type RemoteType = 'remote' | 'hybrid' | 'onsite';
 
 export type SalaryPeriod = 'hour' | 'month' | 'year';
 
-export type CompanySize =
-  | '1-10'
-  | '11-50'
-  | '51-200'
-  | '201-500'
-  | '501-1000'
-  | '1000+';
+export type CompanySize = '1-10' | '11-50' | '51-200' | '201-500' | '501-1000' | '1000+';
 
 export type SkillLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
-
-export type MessageKind =
-  | 'text'
-  | 'system'
-  | 'interview_invite'
-  | 'offer'
-  | 'attachment';
-
-export type ThreadStatus = 'active' | 'archived' | 'blocked';
 
 export type NotificationType =
   | 'application_received'
   | 'application_status_changed'
-  | 'new_message'
   | 'interview_scheduled'
   | 'job_match'
   | 'profile_view'

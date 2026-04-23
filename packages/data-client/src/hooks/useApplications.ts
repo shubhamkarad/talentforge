@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../client';
 import { qk } from '../query-keys';
@@ -90,6 +91,68 @@ export function useCandidateApplications(candidateId: string | undefined) {
     },
     enabled: !!candidateId,
   });
+}
+
+// Subscribes to UPDATE events on the candidate's applications. When the
+// recruiter flips a status (e.g. reviewing → shortlisted), both the list
+// query (useCandidateApplications) and the single-row detail query
+// (useApplication) invalidate, so the UI updates without a manual refresh.
+// Mount exactly once per authenticated session — the layout is the right
+// place. Mounting twice trips the duplicate-topic guard in @supabase/realtime-js.
+export function useCandidateApplicationsRealtime(candidateId: string | undefined) {
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!candidateId) return;
+    const channel = supabase
+      .channel(`applications:candidate:${candidateId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'applications',
+          filter: `candidate_id=eq.${candidateId}`,
+        },
+        (payload) => {
+          qc.invalidateQueries({ queryKey: qk.applications.byCandidate(candidateId) });
+          const row = ((payload.new ?? payload.old) as { id?: string } | undefined) ?? undefined;
+          if (row?.id) {
+            qc.invalidateQueries({ queryKey: qk.applications.byId(row.id) });
+          }
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [candidateId, qc]);
+}
+
+// Employer-side twin. Fires on every change to any application — RLS filters
+// what the employer can actually re-fetch, so we just invalidate broadly.
+// Useful when a candidate withdraws or when a new application lands.
+export function useEmployerApplicationsRealtime(employerId: string | undefined) {
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!employerId) return;
+    const channel = supabase
+      .channel(`applications:employer:${employerId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'applications' },
+        (payload) => {
+          qc.invalidateQueries({ queryKey: qk.applications.byEmployer(employerId) });
+          const row = ((payload.new ?? payload.old) as { id?: string } | undefined) ?? undefined;
+          if (row?.id) {
+            qc.invalidateQueries({ queryKey: qk.applications.byId(row.id) });
+          }
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [employerId, qc]);
 }
 
 export function useHasApplied(candidateId: string | undefined, jobId: string | undefined) {

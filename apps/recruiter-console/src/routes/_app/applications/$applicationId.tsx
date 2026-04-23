@@ -1,12 +1,12 @@
-import { Link, createFileRoute, useNavigate } from '@tanstack/react-router';
-import { ExternalLink, Mail, MessagesSquare, Phone } from 'lucide-react';
+import { Link, createFileRoute } from '@tanstack/react-router';
+import { ExternalLink, Mail, Phone } from 'lucide-react';
 import {
   APPLICATION_STATUS_LABELS,
   formatDate,
   formatRelativeTime,
   initialsOf,
 } from '@forge/shared';
-import { useApplication, useMessageThread, useUpdateApplication } from '@forge/data-client';
+import { useApplication, useUpdateApplication } from '@forge/data-client';
 import {
   Avatar,
   AvatarFallback,
@@ -39,10 +39,8 @@ const STATUSES = [
 
 function ApplicationDetailPage() {
   const { applicationId } = Route.useParams();
-  const navigate = useNavigate();
   const application = useApplication(applicationId);
   const updateApplication = useUpdateApplication();
-  const { data: thread, createThread } = useMessageThread(applicationId);
 
   if (application.isLoading) {
     return (
@@ -86,26 +84,6 @@ function ApplicationDetailPage() {
     }
   }
 
-  async function openThread() {
-    try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const existing = thread as any;
-      if (existing?.id) {
-        navigate({ to: '/messages', search: { thread: existing.id } });
-        return;
-      }
-      const created = await createThread.mutateAsync({
-        applicationId,
-        employerId: row.jobs?.employer_id,
-        candidateId: row.candidate_id,
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      navigate({ to: '/messages', search: { thread: (created as any).id } });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not open thread');
-    }
-  }
-
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
       <PageHeader
@@ -136,16 +114,6 @@ function ApplicationDetailPage() {
                 </option>
               ))}
             </Select>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={openThread}
-              disabled={createThread.isPending}
-            >
-              <MessagesSquare className="size-4" />
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {(thread as any)?.id ? 'Open thread' : 'Message candidate'}
-            </Button>
           </>
         }
       />
