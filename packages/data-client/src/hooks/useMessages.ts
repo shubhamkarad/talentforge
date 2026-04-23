@@ -5,20 +5,25 @@ import { qk } from '../query-keys';
 
 // ------- threads -------
 
-export function useMessageThreads(userId: string | undefined, role: 'employer' | 'candidate' | undefined) {
+export function useMessageThreads(
+  userId: string | undefined,
+  role: 'employer' | 'candidate' | undefined,
+) {
   return useQuery({
     queryKey: userId && role ? qk.messages.threads(userId, role) : ['threads', 'empty'],
     queryFn: async () => {
       const col = role === 'employer' ? 'employer_id' : 'candidate_id';
       const { data, error } = await supabase
         .from('message_threads')
-        .select(`
+        .select(
+          `
           *,
           application:application_id(id, job_id, jobs(title, companies(name))),
           employer:employer_id(id, full_name, avatar_url),
           candidate:candidate_id(id, full_name, avatar_url),
           messages(id, content, created_at, sender_id, read_at)
-        `)
+        `,
+        )
         .eq(col, userId!)
         .order('last_message_at', { ascending: false, nullsFirst: false });
       if (error) throw error;
@@ -74,9 +79,7 @@ export function useMessageThread(applicationId: string | undefined) {
 // ------- messages (with realtime) -------
 
 export function useMessages(threadId: string | undefined) {
-  const qc = useQueryClient();
-
-  const query = useQuery({
+  return useQuery({
     queryKey: threadId ? qk.messages.list(threadId) : ['messages', 'empty'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -89,14 +92,25 @@ export function useMessages(threadId: string | undefined) {
     },
     enabled: !!threadId,
   });
+}
 
+// Subscribes once per open thread to INSERT events and invalidates the thread
+// messages cache. Pair with `useMessages(threadId)` wherever you render a
+// thread — only mount it once per threadId to avoid the duplicate-topic guard.
+export function useMessagesRealtime(threadId: string | undefined) {
+  const qc = useQueryClient();
   useEffect(() => {
     if (!threadId) return;
     const channel = supabase
       .channel(`messages:${threadId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages', filter: `thread_id=eq.${threadId}` },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `thread_id=eq.${threadId}`,
+        },
         () => qc.invalidateQueries({ queryKey: qk.messages.list(threadId) }),
       )
       .subscribe();
@@ -104,8 +118,6 @@ export function useMessages(threadId: string | undefined) {
       supabase.removeChannel(channel);
     };
   }, [threadId, qc]);
-
-  return query;
 }
 
 export function useSendMessage() {

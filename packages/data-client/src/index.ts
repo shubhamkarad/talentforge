@@ -38,19 +38,18 @@ export {
   useCalculateMatch,
   type MatchScoreRow,
 } from './hooks/useMatchScores';
-export {
-  useCareerForecast,
-  useGenerateCareerForecast,
-} from './hooks/useCareerForecast';
+export { useCareerForecast, useGenerateCareerForecast } from './hooks/useCareerForecast';
 export {
   useMessageThreads,
   useMessageThread,
   useMessages,
+  useMessagesRealtime,
   useSendMessage,
   useMarkMessagesRead,
 } from './hooks/useMessages';
 export {
   useNotifications,
+  useNotificationsRealtime,
   useUnreadNotificationCount,
   useMarkNotificationRead,
   useMarkAllNotificationsRead,

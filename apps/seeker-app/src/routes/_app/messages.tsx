@@ -6,6 +6,7 @@ import {
   useMarkMessagesRead,
   useMessageThreads,
   useMessages,
+  useMessagesRealtime,
   useSendMessage,
 } from '@forge/data-client';
 import {
@@ -220,6 +221,7 @@ function ThreadChat({
   currentUserId: string;
 }) {
   const messages = useMessages(thread.id);
+  useMessagesRealtime(thread.id);
   const sendMessage = useSendMessage();
   const markRead = useMarkMessagesRead();
   const [draft, setDraft] = useState('');

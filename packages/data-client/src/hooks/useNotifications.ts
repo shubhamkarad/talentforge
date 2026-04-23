@@ -4,9 +4,7 @@ import { supabase } from '../client';
 import { qk } from '../query-keys';
 
 export function useNotifications(userId: string | undefined) {
-  const qc = useQueryClient();
-
-  const query = useQuery({
+  return useQuery({
     queryKey: userId ? qk.notifications.list(userId) : ['notifications', 'empty'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -20,14 +18,26 @@ export function useNotifications(userId: string | undefined) {
     },
     enabled: !!userId,
   });
+}
 
+// Subscribes once per authenticated session to INSERT events on notifications
+// and invalidates the list + unread-count caches. Mount this exactly once per
+// app (e.g. inside the _app layout route) — mounting it multiple times with
+// the same userId trips Supabase realtime's duplicate-topic guard.
+export function useNotificationsRealtime(userId: string | undefined) {
+  const qc = useQueryClient();
   useEffect(() => {
     if (!userId) return;
     const channel = supabase
       .channel(`notifications:${userId}`)
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
         () => {
           qc.invalidateQueries({ queryKey: qk.notifications.list(userId) });
           qc.invalidateQueries({ queryKey: qk.notifications.unread(userId) });
@@ -38,8 +48,6 @@ export function useNotifications(userId: string | undefined) {
       supabase.removeChannel(channel);
     };
   }, [userId, qc]);
-
-  return query;
 }
 
 export function useUnreadNotificationCount(userId: string | undefined) {

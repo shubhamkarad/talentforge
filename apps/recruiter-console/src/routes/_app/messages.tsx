@@ -6,6 +6,7 @@ import {
   useMarkMessagesRead,
   useMessageThreads,
   useMessages,
+  useMessagesRealtime,
   useSendMessage,
 } from '@forge/data-client';
 import {
@@ -50,10 +51,7 @@ function MessagesPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
-      <PageHeader
-        title="Messages"
-        subtitle="One thread per application. Updates arrive live."
-      />
+      <PageHeader title="Messages" subtitle="One thread per application. Updates arrive live." />
 
       <Card className="overflow-hidden">
         <div className="grid min-h-[560px] md:grid-cols-[280px_1fr]">
@@ -91,8 +89,8 @@ function ThreadList({
   currentUserId: string;
 }) {
   return (
-    <div className="border-b border-border/70 md:border-b-0 md:border-r">
-      <div className="border-b border-border/70 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+    <div className="border-border/70 border-b md:border-r md:border-b-0">
+      <div className="border-border/70 text-muted-foreground border-b px-4 py-3 text-xs font-semibold tracking-wider uppercase">
         Threads
       </div>
       {loading ? (
@@ -102,9 +100,8 @@ function ThreadList({
           ))}
         </div>
       ) : threads.length === 0 ? (
-        <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-          No threads yet. They appear here once either side sends a message on
-          an application.
+        <div className="text-muted-foreground px-6 py-10 text-center text-sm">
+          No threads yet. They appear here once either side sends a message on an application.
         </div>
       ) : (
         <ul className="max-h-[600px] overflow-y-auto">
@@ -138,8 +135,9 @@ function ThreadRow({
   const candidateName = thread.candidate?.full_name ?? 'Anonymous candidate';
   const jobTitle = thread.application?.jobs?.title ?? 'Role';
   const unread = thread.employer_unread_count ?? 0;
-  const lastMessage: { content?: string; sender_id?: string } | undefined =
-    (thread.messages ?? [])[thread.messages?.length - 1];
+  const lastMessage: { content?: string; sender_id?: string } | undefined = (thread.messages ?? [])[
+    thread.messages?.length - 1
+  ];
   const preview = lastMessage?.content
     ? (lastMessage.sender_id === currentUserId ? 'You: ' : '') + lastMessage.content
     : 'No messages yet';
@@ -150,7 +148,7 @@ function ThreadRow({
         type="button"
         onClick={onSelect}
         className={cn(
-          'flex w-full items-start gap-3 border-b border-border/60 px-4 py-3 text-left transition-colors',
+          'border-border/60 flex w-full items-start gap-3 border-b px-4 py-3 text-left transition-colors',
           active ? 'bg-primary/5' : 'hover:bg-muted/40',
         )}
       >
@@ -161,23 +159,26 @@ function ThreadRow({
           <div className="flex items-center justify-between gap-2">
             <span className="truncate text-sm font-medium">{candidateName}</span>
             {thread.last_message_at ? (
-              <span className="shrink-0 text-[10px] text-muted-foreground">
+              <span className="text-muted-foreground shrink-0 text-[10px]">
                 {formatRelativeTime(thread.last_message_at)}
               </span>
             ) : null}
           </div>
-          <div className="truncate text-xs text-muted-foreground">{jobTitle}</div>
+          <div className="text-muted-foreground truncate text-xs">{jobTitle}</div>
           <div
             className={cn(
               'mt-0.5 truncate text-xs',
-              unread > 0 ? 'font-medium text-foreground' : 'text-muted-foreground',
+              unread > 0 ? 'text-foreground font-medium' : 'text-muted-foreground',
             )}
           >
             {preview}
           </div>
         </div>
         {unread > 0 ? (
-          <Badge variant="default" className="ml-1 mt-1 h-5 min-w-5 justify-center px-1.5 text-[10px]">
+          <Badge
+            variant="default"
+            className="mt-1 ml-1 h-5 min-w-5 justify-center px-1.5 text-[10px]"
+          >
             {unread > 9 ? '9+' : unread}
           </Badge>
         ) : null}
@@ -202,11 +203,11 @@ function ActiveThreadPane({
     return (
       <div className="grid place-items-center px-6 py-12">
         <div className="text-center">
-          <div className="mx-auto grid size-10 place-items-center rounded-full bg-muted text-muted-foreground">
+          <div className="bg-muted text-muted-foreground mx-auto grid size-10 place-items-center rounded-full">
             <MessagesSquare className="size-5" />
           </div>
           <h3 className="mt-3 text-sm font-semibold">Select a thread</h3>
-          <p className="mx-auto mt-1 max-w-xs text-xs text-muted-foreground">
+          <p className="text-muted-foreground mx-auto mt-1 max-w-xs text-xs">
             Pick a conversation on the left to start reading.
           </p>
         </div>
@@ -226,6 +227,7 @@ function ThreadChat({
   currentUserId: string;
 }) {
   const messages = useMessages(thread.id);
+  useMessagesRealtime(thread.id);
   const sendMessage = useSendMessage();
   const markRead = useMarkMessagesRead();
   const [draft, setDraft] = useState('');
@@ -264,19 +266,19 @@ function ThreadChat({
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center gap-3 border-b border-border/70 px-6 py-4">
+      <div className="border-border/70 flex items-center gap-3 border-b px-6 py-4">
         <Avatar className="size-9">
           <AvatarFallback className="text-xs">{initialsOf(candidateName)}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
           <div className="truncate font-semibold">{candidateName}</div>
-          <div className="truncate text-xs text-muted-foreground">{jobTitle}</div>
+          <div className="text-muted-foreground truncate text-xs">{jobTitle}</div>
         </div>
       </div>
 
       <div
         ref={scrollRef}
-        className="flex-1 space-y-3 overflow-y-auto bg-muted/20 px-6 py-6"
+        className="bg-muted/20 flex-1 space-y-3 overflow-y-auto px-6 py-6"
         style={{ maxHeight: '440px' }}
       >
         {messages.isLoading ? (
@@ -286,7 +288,7 @@ function ThreadChat({
             <Skeleton className="h-10 w-3/4" />
           </>
         ) : (messages.data ?? []).length === 0 ? (
-          <div className="py-8 text-center text-xs text-muted-foreground">
+          <div className="text-muted-foreground py-8 text-center text-xs">
             No messages yet. Say hi.
           </div>
         ) : (
@@ -297,7 +299,7 @@ function ThreadChat({
         )}
       </div>
 
-      <div className="border-t border-border/70 p-4">
+      <div className="border-border/70 border-t p-4">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -347,8 +349,8 @@ function MessageBubble({
         className={cn(
           'max-w-[75%] rounded-2xl px-3.5 py-2 text-sm',
           mine
-            ? 'rounded-br-sm bg-primary text-primary-foreground'
-            : 'rounded-bl-sm bg-background shadow-sm',
+            ? 'bg-primary text-primary-foreground rounded-br-sm'
+            : 'bg-background rounded-bl-sm shadow-sm',
         )}
       >
         <div className="whitespace-pre-wrap">{message.content}</div>
