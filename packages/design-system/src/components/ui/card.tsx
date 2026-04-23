@@ -6,7 +6,10 @@ export const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
     <div
       ref={ref}
       className={cn(
-        'rounded-lg border bg-card text-card-foreground shadow-sm',
+        // `max-w-full` + `overflow-hidden` guarantee the card never exceeds
+        // its parent width and nothing inside can visually escape the card
+        // (common on mobile when long titles fail to truncate cleanly).
+        'bg-card text-card-foreground w-full max-w-full overflow-hidden rounded-lg border shadow-sm',
         className,
       )}
       {...props}
@@ -26,7 +29,7 @@ export const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<H
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn('text-lg font-semibold leading-none tracking-tight', className)}
+      className={cn('text-lg leading-none font-semibold tracking-tight', className)}
       {...props}
     />
   ),
@@ -37,7 +40,7 @@ export const CardDescription = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
+  <div ref={ref} className={cn('text-muted-foreground text-xs', className)} {...props} />
 ));
 CardDescription.displayName = 'CardDescription';
 
@@ -50,11 +53,7 @@ CardContent.displayName = 'CardContent';
 
 export const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('flex items-center p-6 pt-0', className)}
-      {...props}
-    />
+    <div ref={ref} className={cn('flex items-center p-6 pt-0', className)} {...props} />
   ),
 );
 CardFooter.displayName = 'CardFooter';

@@ -91,7 +91,7 @@ function Hero() {
         </FadeIn>
 
         <FadeIn delay={0.3}>
-          <div className="mt-8 flex items-center justify-center gap-3">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <MagneticButton>
               <ShineButton asChild size="lg">
                 <Link to="/signup" className="group">
@@ -236,7 +236,7 @@ function HowItWorks() {
         </Stagger>
 
         <FadeIn delay={0.2}>
-          <div className="border-border from-card via-card to-primary/5 relative mt-20 overflow-hidden rounded-3xl border bg-gradient-to-br p-12">
+          <div className="border-border from-card via-card to-primary/5 relative mt-20 overflow-hidden rounded-3xl border bg-gradient-to-br p-6 sm:p-10 lg:p-12">
             <div
               aria-hidden
               className="bg-primary/10 pointer-events-none absolute -top-24 -right-24 size-72 rounded-full blur-3xl"
@@ -270,7 +270,7 @@ function HowItWorks() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="grid grid-cols-3 gap-2 text-center sm:gap-3">
                 {[
                   { n: '0–100', l: 'fit score' },
                   { n: '1/3/5', l: 'year forecast' },
@@ -278,12 +278,12 @@ function HowItWorks() {
                 ].map((stat) => (
                   <div
                     key={stat.l}
-                    className="border-border bg-background/60 rounded-xl border p-4 backdrop-blur"
+                    className="border-border bg-background/60 min-w-0 rounded-xl border p-3 backdrop-blur sm:p-4"
                   >
-                    <div className="from-primary to-accent bg-gradient-to-br bg-clip-text text-2xl font-bold text-transparent">
+                    <div className="from-primary to-accent truncate bg-gradient-to-br bg-clip-text text-lg font-bold text-transparent sm:text-2xl">
                       {stat.n}
                     </div>
-                    <div className="text-muted-foreground mt-1 text-[11px] tracking-[0.12em] uppercase">
+                    <div className="text-muted-foreground mt-1 text-[10px] leading-tight tracking-[0.08em] uppercase sm:text-[11px] sm:tracking-[0.12em]">
                       {stat.l}
                     </div>
                   </div>

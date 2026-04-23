@@ -82,35 +82,43 @@ function SavedRow({
   return (
     <li>
       <Card>
-        <CardContent className="flex items-center gap-4 p-5">
-          <div className="bg-primary/10 text-primary grid size-10 shrink-0 place-items-center rounded-md">
-            <Briefcase className="size-4" />
+        <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+          <div className="flex min-w-0 flex-1 items-center gap-4">
+            <div className="bg-primary/10 text-primary grid size-10 shrink-0 place-items-center rounded-md">
+              <Briefcase className="size-4" />
+            </div>
+            <Link
+              to="/jobs/$jobId"
+              params={{ jobId: job.id }}
+              className="min-w-0 flex-1 hover:underline"
+            >
+              <div className="truncate font-semibold">{job.title}</div>
+              <div className="text-muted-foreground mt-0.5 truncate text-sm">
+                {company.name ?? '—'}
+                {job.location ? ` · ${job.location}` : ''}
+              </div>
+              <div className="text-muted-foreground mt-1 flex flex-wrap items-center gap-2 text-xs">
+                {job.show_salary ? (
+                  <Badge variant="outline">
+                    {formatSalaryRange(
+                      job.salary_min,
+                      job.salary_max,
+                      job.salary_currency,
+                      job.salary_period,
+                    )}
+                  </Badge>
+                ) : null}
+                <span>Saved {formatRelativeTime(row.created_at)}</span>
+              </div>
+            </Link>
           </div>
-          <Link
-            to="/jobs/$jobId"
-            params={{ jobId: job.id }}
-            className="min-w-0 flex-1 hover:underline"
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onUnsave}
+            disabled={isUnsaving}
+            className="w-full shrink-0 sm:w-auto"
           >
-            <div className="truncate font-semibold">{job.title}</div>
-            <div className="text-muted-foreground mt-0.5 truncate text-sm">
-              {company.name ?? '—'}
-              {job.location ? ` · ${job.location}` : ''}
-            </div>
-            <div className="text-muted-foreground mt-1 flex gap-2 text-xs">
-              {job.show_salary ? (
-                <Badge variant="outline">
-                  {formatSalaryRange(
-                    job.salary_min,
-                    job.salary_max,
-                    job.salary_currency,
-                    job.salary_period,
-                  )}
-                </Badge>
-              ) : null}
-              <span>Saved {formatRelativeTime(row.created_at)}</span>
-            </div>
-          </Link>
-          <Button variant="outline" size="sm" onClick={onUnsave} disabled={isUnsaving}>
             <BookmarkMinus className="size-4" /> Unsave
           </Button>
         </CardContent>

@@ -151,10 +151,15 @@
   }
   html {
     @apply antialiased;
+    /* Belt-and-suspenders horizontal-overflow guard. If any descendant ever
+     * produces content wider than the viewport, the page gets clipped at the
+     * edge instead of gaining a sideways scrollbar on mobile. */
+    overflow-x: clip;
   }
   body {
     @apply bg-background text-foreground font-sans;
     font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-x: clip;
   }
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight;

@@ -34,6 +34,25 @@ _A recruiter console and a candidate app sharing one Supabase backend, with Cere
 
 _Sign in with any account from the [test accounts table](#test-accounts) — the hosted Supabase project is preseeded._
 
+### 🎬 Demo video
+
+<!--
+  YouTube (preferred): replace VIDEO_ID below with the ID from your URL.
+    If your link is https://youtu.be/abc123XYZ  →  VIDEO_ID = abc123XYZ
+    If it's https://www.youtube.com/watch?v=abc123XYZ  →  same ID.
+
+  Google Drive fallback: comment out the YouTube line and uncomment the
+  Drive line, then paste your shareable Drive link.
+-->
+
+[![Watch the demo](https://img.youtube.com/vi/VIDEO_ID/maxresdefault.jpg)](https://youtu.be/VIDEO_ID)
+
+<!-- Google Drive fallback (anyone with the link can view):
+▶ [**Watch the 5-minute demo on Google Drive**](https://drive.google.com/file/d/FILE_ID/view?usp=sharing)
+-->
+
+_Covers: employer job-creation with AI draft · AI-scored applicants · candidate apply + cover-letter AI · role separation (candidate can't see AI scores) · realtime status updates._
+
 </div>
 
 ---

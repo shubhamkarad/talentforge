@@ -50,7 +50,10 @@ export function AppShell({
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar userId={user.id} onMenuClick={() => setMobileOpen(true)} />
-        <main className="bg-muted/20 flex-1">
+        {/* overflow-x-hidden is the viewport-level safety net — any child page
+            that accidentally produces a >100vw subtree gets clipped instead
+            of forcing the whole page to scroll horizontally. */}
+        <main className="bg-muted/20 flex-1 overflow-x-hidden">
           <Outlet />
         </main>
       </div>
@@ -264,12 +267,12 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="mb-8 flex items-center justify-between gap-4">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+    <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0">
+        <h1 className="text-2xl font-semibold tracking-tight break-words">{title}</h1>
         {subtitle ? <div className="text-muted-foreground mt-1 text-sm">{subtitle}</div> : null}
       </div>
-      {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+      {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
     </div>
   );
 }
