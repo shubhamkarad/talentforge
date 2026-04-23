@@ -123,26 +123,14 @@ jobs:
             exit 1
           fi
 
-      - name: pull vercel env
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets[matrix.project_id_secret] }}
-        run: vercel pull --yes --environment=production
-        working-directory: apps/${{ matrix.app }}
-
-      - name: build
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets[matrix.project_id_secret] }}
-        run: vercel build --prod
-        working-directory: apps/${{ matrix.app }}
-
+      # Uploads the source tree and lets Vercel's build servers handle install
+      # + build using the project's configured install command. Doing the
+      # build locally via `vercel build` hits `spawn sh ENOENT` when Vercel
+      # CLI tries to run the monorepo install command on the GitHub runner.
       - name: deploy
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets[matrix.project_id_secret] }}
-        run: vercel deploy --prebuilt --prod
+        run: vercel deploy --prod --yes
         working-directory: apps/${{ matrix.app }}

@@ -2,7 +2,9 @@
 // selected or written here is unfiltered. Do NOT accept arbitrary user input
 // as table/column names with this client.
 
-import { createClient, type SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
+// Using Deno's native `npm:` specifier avoids the occasional Cloudflare 522
+// timeout on esm.sh that blocked edge-function deploys.
+import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2.49.4';
 
 export function serviceClient(): SupabaseClient {
   const url = Deno.env.get('SUPABASE_URL');
